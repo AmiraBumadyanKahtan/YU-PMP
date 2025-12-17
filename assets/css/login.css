@@ -1,0 +1,148 @@
+/* GLOBAL */
+body {
+    margin: 0;
+    font-family: "Varela Round", sans-serif;
+  font-weight: 400;
+  font-style: normal;
+    background: linear-gradient(135deg, #fdfdfd 0%, #fbeee6 30%, #f4b07c 100%);
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* MAIN CONTAINER */
+.container {
+    width: 80%;
+    max-width: 1400px;
+    height: 85vh;
+    background: rgba(255,255,255,0.85);
+    border-radius: 28px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+    display: flex;
+    overflow: hidden;
+}
+
+/* LEFT PANEL */
+.left-section {
+    width: 50%;
+    padding: 55px 70px;
+    background: linear-gradient(180deg, #fbeee6 0%, #f29a4a 100%);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    border-radius: 28px 0 0 28px;
+}
+
+.yu-logo {
+    width: 200px;
+    margin-bottom: 45px;
+    align-self: center;
+}
+
+.app-title {
+    font-size: 48px;
+    margin: 0;
+    margin-bottom: 10px;
+    font-weight: bold;
+}
+
+.app-sub {
+    font-size: 1.2rem;
+    margin-bottom: 30px;
+}
+
+.features {
+    list-style: none;
+    padding: 0;
+    font-size: 1.3rem;
+    line-height: 2.2rem;
+}
+
+.features li::before {
+    content: "✓ ";
+    color: #000;
+}
+
+/* RIGHT PANEL */
+.right-section {
+    width: 50%;
+    padding: 80px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.welcome {
+    font-size: 40px;
+    margin-bottom: 85px;
+}
+
+/* FORM */
+.login-form {
+    display: flex;
+    flex-direction: column;
+}
+
+.login-form label {
+    font-size: 17px;
+    margin-bottom: 8px;
+}
+
+.login-form input {
+    padding: 11px;
+    font-size: 16px;
+    border-radius: 15px;
+    border: 1px solid #e5e5e5;
+    margin-bottom: 22px;
+    background-color: #eef3ff;
+    outline: none;
+    transition: 0.2s;
+    font-family: "Varela Round", sans-serif;
+  font-weight: 400;
+  font-style: normal;
+}
+
+.login-form input:focus {
+    border-color: #f58220;
+    box-shadow: 0 0 0 2px rgba(245,130,32,0.3);
+}
+
+/* BUTTON */
+.btn-login {
+    padding: 11px;
+    font-size: 20px;
+    font-family: "Varela Round", sans-serif;
+  font-weight: 400;
+  font-style: normal;
+    background: #f58220;
+    color: #fff;
+    border: none;
+    border-radius: 15px;
+    cursor: pointer;
+    transition: 0.25s;
+    margin-top: 15px;
+}
+
+.btn-login:hover {
+    background: #000000;
+}
+
+/* FOOTER TEXT */
+.version {
+    margin-top: 50px;
+    text-align: center;
+    font-size: 1rem;
+    color: #555;
+}
+
+/* ERROR BOX */
+.login-error {
+    background: #ffe1e1;
+    border: 1px solid #e6a1a1;
+    padding: 12px;
+    color: #a40000;
+    border-radius: 12px;
+    margin-bottom: 20px;
+    font-size: 1.1rem;
+}

@@ -1,0 +1,192 @@
+/* =========================================================
+   GLOBAL CONTENT WRAPPER
+========================================================= */
+
+.page-wrapper {
+    padding: 2rem;
+    font-family: "Times New Roman", serif;
+}
+/* Page Header */
+.page-header-flex {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 18px;
+}
+
+.page-title {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #ff8c00;
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+/* RESOURCE TABLE */
+.resource-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.05);
+    text-align: center;
+}
+
+.resource-table th {
+    padding: 14px;
+    background: #fff4e0;
+    color: #8b4500;
+    font-size: 0.9rem;
+}
+
+.resource-table td {
+    padding: 13px;
+    border-bottom: 1px solid #eee;
+    font-size: 0.9rem;
+}
+
+.resource-table tr:hover {
+    background: #fafafa;
+}
+
+.no-data {
+    text-align: center !important;
+    padding: 25px !important;
+    color: #777;
+}
+
+/* BADGES */
+.badge-active {
+    background: #d4f8d4;
+    color: #1a7f37;
+    padding: 5px 12px;
+    font-size: 0.8rem;
+    border-radius: 12px;
+    font-weight: 600;
+}
+
+.badge-inactive {
+    background: #ffe0e0;
+    color: #a21919;
+    padding: 5px 12px;
+    font-size: 0.8rem;
+    border-radius: 12px;
+    font-weight: 600;
+}
+
+/* ACTION BUTTONS */
+.actions {
+    display: flex;
+    gap: 8px;
+}
+
+.action-btn {
+    padding: 7px 10px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-size: 0.85rem;
+    transition: .2s;
+}
+
+.btn-view { font-family: "Times New Roman", serif;background: #fff4e0; color: #ff8c00; }
+.btn-view:hover{
+    background: #ff8c00;
+    color: #fff4e0;
+}
+.btn-edit { font-family: "Times New Roman", serif;background: #def5e7; color: #1b7f3a; }
+.btn-edit:hover{
+    color:#def5e7;
+    background: #1b7f3a;
+}
+.btn-delete {font-family: "Times New Roman", serif; background: #ffe4e4; color: #ad1c1c; }
+.btn-delete:hover{
+    color: #ffe4e4;
+    background: #ad1c1c;
+}
+
+.action-btn:hover { opacity: 0.85; }
+
+/* FILTER BAR */
+
+.filter-bar {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem 1.3rem;
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.06);
+    margin-bottom: 1.5rem;
+    font-family: "Times New Roman", serif;
+}
+
+/* Input + Select fields */
+.filter-input,
+.filter-select {
+    height: 42px;
+    padding: 0 12px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    background: #fafafa;
+    font-size: 0.95rem;
+    font-family: "Times New Roman", serif;
+    min-width: 160px;
+    transition: 0.2s ease;
+}
+
+.filter-input {
+    flex: 1; /* search bar expands */
+}
+
+.filter-input:focus,
+.filter-select:focus {
+    border-color: #ff9c31;
+    background: #fff;
+    box-shadow: 0 0 5px rgba(255, 156, 49, 0.5);
+    outline: none;
+}
+
+/* Reset Button */
+.btn-reset {
+    background: #ffe5e5;
+    color: #b00;
+    font-family: "Times New Roman", serif;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 14px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: 0.2s;
+    text-decoration: none;
+}
+
+.btn-reset:hover {
+    background: #ffcccc;
+}
+.btn-primary {
+    font-family: "Times New Roman", serif;
+    background: var(--primary-orange);
+    color: white;
+    padding: 10px 18px;
+    text-decoration: none;
+    border-radius: 8px;
+    font-weight: bold;
+    border: none;
+    padding: 10px 18px;
+    font-size: 14px;
+}
+.btn-primary:hover{
+    color:white;
+    background: black;
+}
+.actions a {
+    font-family: "Times New Roman", serif;
+    padding: 6px 10px;
+    border-radius: 8px;
+    font-size: 14px;
+    text-decoration: none;
+    margin-right: 5px;
+    transition: .2s;
+}

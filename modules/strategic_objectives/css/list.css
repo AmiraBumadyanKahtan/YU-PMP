@@ -1,0 +1,205 @@
+/* =========================================================
+   GLOBAL CONTENT WRAPPER
+========================================================= */
+
+.page-wrapper {
+    padding: 2rem;
+    font-family: "Times New Roman", serif;
+}
+/* Page Header */
+.page-header-flex {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 18px;
+}
+.page-title {
+    font-family: "Times New Roman", serif;
+    font-size: 2rem;
+    font-weight: 700;
+    color: #ff8c00;
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.btn-primary {
+    font-family: "Times New Roman", serif;
+    background: var(--primary-orange);
+    color: white;
+    padding: 10px 18px;
+    text-decoration: none;
+    border-radius: 8px;
+    font-weight: bold;
+    border: none;
+    padding: 10px 18px;
+    font-size: 14px;
+}
+.btn-primary:hover{
+    color:white;
+    background: black;
+}
+
+/* FILTER BAR */
+.filter-bar {
+    font-family: "Times New Roman", serif;
+    background: #fff;
+    padding: 18px;
+    margin: 15px 0 25px 0;
+    border-radius: 12px;
+    display: flex;
+    gap: 15px;
+    align-items: center;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.filter-input {
+    font-family: "Times New Roman", serif;
+    flex: 1;
+    padding: 12px 15px;
+    border-radius: 10px;
+    border: 1px solid #e5e5e5;
+    font-size: 15px;
+    background: #fafafa;
+    outline: none;
+    transition: 0.2s;
+}
+.filter-input:focus {
+    border-color: #ff8c00;
+    background: #fff;
+}
+
+.filter-select {
+    font-family: "Times New Roman", serif;
+    padding: 12px 15px;
+    border-radius: 10px;
+    border: 1px solid #e5e5e5;
+    font-size: 15px;
+    background: #fafafa;
+    transition: 0.2s;
+    cursor: pointer;
+}
+.filter-select:focus {
+    border-color: #ff8c00;
+    background: #fff;
+}
+
+.btn-apply {
+    font-family: "Times New Roman", serif;
+    background: #ff8c00;
+    color: white;
+    border: none;
+    padding: 12px 18px;
+    border-radius: 10px;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: 0.2s;
+}
+.btn-apply:hover {
+    background: #e97f00;
+}
+
+/* Reset Button */
+.btn-reset {
+    background: #ffe5e5;
+    color: #b00;
+    font-family: "Times New Roman", serif;
+    border: none;
+    border-radius: 8px;
+    padding: 11px 15px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: 0.2s;
+    text-decoration: none;
+    font-size: 15px;
+}
+
+.btn-reset:hover {
+    background: #ffcccc;
+}
+
+
+.table-container {
+    background: #fff;
+    border-radius: 8px;
+    padding: 0;
+    text-align: center;
+}
+
+.smart-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.smart-table thead {
+    background: #FFF4E8;
+}
+
+.smart-table th {
+    text-align: center;
+    padding: 12px;
+    font-size: 14px;
+    color: #c86a12;
+}
+
+.smart-table td {
+    padding: 12px;
+    border-top: 1px solid #eee;
+}
+
+.pillar-tag {
+    padding: 6px 10px;
+    border-left: 5px solid #222;
+    background: #fafafa;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border-radius: 4px;
+}
+.link-pillar {
+    color: #ff8c00;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.link-pillar:hover {
+    text-decoration: underline;
+}
+
+
+/* ACTION BUTTONS */
+.actions {
+    text-align: center;
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+}
+
+.action-btn {
+    padding: 7px 10px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-size: 0.85rem;
+    transition: .2s;
+}
+
+.action-btn.view { font-family: "Times New Roman", serif;background: #fff4e0; color: #ff8c00; }
+.action-btn.view:hover{
+    background: #ff8c00;
+    color: #fff4e0;
+}
+.action-btn.edit { font-family: "Times New Roman", serif;background: #def5e7; color: #1b7f3a; }
+.action-btn.edit:hover{
+    color:#def5e7;
+    background: #1b7f3a;
+}
+.action-btn.delete {font-family: "Times New Roman", serif; background: #ffe4e4; color: #ad1c1c; }
+.action-btn.delete:hover{
+    color: #ffe4e4;
+    background: #ad1c1c;
+}

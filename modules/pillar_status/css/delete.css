@@ -1,0 +1,75 @@
+/* =========================================================
+   GLOBAL CONTENT WRAPPER
+========================================================= */
+
+.page-wrapper {
+    padding: 2rem;
+    font-family: "Times New Roman", serif;
+}
+/* Page Header */
+.page-header-flex {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 18px;
+}
+
+.page-container {
+    margin: 40px auto;
+}
+
+.delete-card {
+    background: #fff;
+    padding: 25px;
+    border-radius: 12px;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+}
+
+.warning-text {
+    font-size: 17px;
+    color: #b30000;
+    font-weight: bold;
+    margin-bottom: 20px;
+}
+
+.delete-details {
+    background: #f7f7f7;
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    line-height: 1.8;
+}
+
+.delete-form {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.btn-delete {
+    font-family: "Times New Roman", serif;
+    background: #b30000;
+    padding: 10px 20px;
+    color: #fff;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+}
+
+.btn-delete:hover {
+    background: #c9302c;
+}
+
+.btn-cancel {
+    font-family: "Times New Roman", serif;
+    background: #eee;
+    color: #333;
+    padding: 12px 20px;
+    border-radius: 8px;
+    text-decoration: none;
+}
+
+.btn-cancel:hover {
+   color:white;
+    background: var(--primary-orange);
+}

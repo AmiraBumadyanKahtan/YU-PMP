@@ -1,0 +1,94 @@
+        /* =========================================================
+           PAGE STYLES (Unified Orange Theme)
+        ========================================================= */
+        body { font-family: "Varela Round", sans-serif;
+  font-weight: 400;
+  font-style: normal; background-color: #fcfcfc; margin: 0; }
+        .page-wrapper { padding: 2rem; }
+
+        /* Page Header */
+        .page-header-flex { display: flex; align-items: center; justify-content: space-between; margin-bottom: 25px; }
+        .page-title {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #ff8c00;
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+        .btn-secondary { font-family: "Varela Round", sans-serif;
+  font-weight: 400;
+  font-style: normal; background: #ffe5e5; color: #b00; border: none; border-radius: 8px; padding: 10px 18px; cursor: pointer; font-weight: bold; transition: 0.2s; text-decoration: none; display: inline-flex; align-items: center; gap: 5px; }
+        .btn-secondary:hover { background: #ffcccc; }
+
+        /* Form Card */
+        .form-card { background: #ffffff; padding: 40px; border-radius: 14px; box-shadow: 0 4px 15px rgba(0,0,0,0.04); max-width: 950px; margin: 0 auto; border-top: 5px solid #ff8c00; }
+        
+        .form-section { margin-bottom: 35px; padding-bottom: 25px; border-bottom: 1px dashed #eee; }
+        .form-section:last-child { border-bottom: none; margin-bottom: 0; }
+        
+        .form-section h3 { color: #333; margin-bottom: 20px; font-size: 1.2rem; display: flex; align-items: center; gap: 10px; }
+        .form-section h3 i { color: #ff8c00; }
+
+        .form-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 25px; }
+        .form-group { margin-bottom: 20px; }
+        
+        .form-group label { display: block; margin-bottom: 8px; font-weight: 600; color: #444; font-size: 0.95rem; }
+        
+        /* --- تحديث ستايل الحقول --- */
+        .form-input, .form-select, .form-textarea { 
+            width: 100%; padding: 0 15px; height: 45px; /* ارتفاع ثابت لضمان التناسق */
+            border: 1px solid #ddd; border-radius: 8px; 
+            font-size: 0.95rem; font-family: "Varela Round", sans-serif;
+  font-weight: 400;
+  font-style: normal; 
+            background-color: #fafafa; box-sizing: border-box; transition: 0.2s; outline: none; 
+            display: flex; align-items: center;
+        }
+        .form-textarea { height: auto; padding: 15px; resize: vertical; min-height: 100px; }
+        .form-input:focus, .form-select:focus, .form-textarea:focus { border-color: #ff9c31; background-color: #fff; box-shadow: 0 0 0 3px rgba(255, 156, 49, 0.1); }
+
+        /* --- تصميم الحقول المقفلة الجديد (Flexbox Addon) --- */
+        .locked-wrapper {
+            display: flex;
+            align-items: center;
+            width: 100%;
+        }
+
+        .locked-wrapper .form-input.locked-field {
+            border-top-right-radius: 0;
+            border-bottom-right-radius: 0;
+            border-right: none;
+            background-color: #f0f0f0;
+            color: #777;
+            cursor: not-allowed;
+            flex: 1; /* يأخذ المساحة المتاحة */
+        }
+
+        .lock-addon {
+            height: 45px; /* نفس ارتفاع الحقل */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0 15px;
+            background-color: #e0e0e0; /* لون أغمق قليلاً للأيقونة */
+            border: 1px solid #ddd;
+            border-left: none; /* إزالة الحد الفاصل */
+            border-top-right-radius: 8px;
+            border-bottom-right-radius: 8px;
+            color: #666;
+            box-sizing: border-box;
+            font-size: 0.9rem;
+        }
+        
+        /* Alert Box */
+        .notice-box { background: #fff3e0; color: #000000; padding: 15px; border-radius: 8px; margin-bottom: 25px; border: 1px solid #ffe0b2; display: flex; align-items: center; gap: 10px; font-weight: 500; }
+
+        /* Buttons */
+        .form-actions { text-align: right; margin-top: 30px; border-top: 1px solid #f0f0f0; padding-top: 25px; }
+        .btn-submit { font-family: "Varela Round", sans-serif;
+  font-weight: 400;
+  font-style: normal; background: #ff8c00; color: white; padding: 12px 30px; border-radius: 8px; font-weight: bold; border: none; font-size: 1rem; cursor: pointer; transition: 0.2s; display: inline-flex; align-items: center; gap: 8px; }
+        .btn-submit:hover { background: #e67e00; }

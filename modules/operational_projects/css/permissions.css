@@ -1,0 +1,68 @@
+/* التنسيقات المتناسقة والبسيطة */
+        body { font-family: "Varela Round", sans-serif; background-color: #fcfcfc; margin: 0; }
+        .page-wrapper { padding: 2rem; }
+        
+        /* البطاقة الرئيسية */
+        .content-card { 
+            background: #fff; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.03); 
+            border: 1px solid #f0f0f0; overflow: hidden; margin-top: 20px;
+        }
+        
+        .card-header {
+            padding: 20px 25px; border-bottom: 1px solid #eee; background: #fff;
+            display: flex; align-items: center; gap: 15px;
+        }
+        .card-header h3 { margin: 0; color: #2c3e50; font-size: 1.1rem; font-weight: 700; }
+        .card-header p { margin: 0; color: #888; font-size: 0.85rem; }
+
+        /* الجدول */
+        .perm-table-wrapper { overflow-x: auto; }
+        .perm-table { width: 100%; border-collapse: collapse; min-width: 800px; }
+        
+        .perm-table th, .perm-table td { 
+            padding: 15px; text-align: center; border-bottom: 1px solid #f5f5f5; font-size: 0.9rem; vertical-align: middle; 
+        }
+        .perm-table th { 
+            background: #fdfdfd; color: #555; font-weight: 600; text-transform: uppercase; font-size: 0.8rem; letter-spacing: 0.5px;
+            border-bottom: 2px solid #eee;
+        }
+        
+        /* العمود الأول (أسماء الموظفين) */
+        .perm-table th:first-child, .perm-table td:first-child { 
+            text-align: left; position: sticky; left: 0; background: #fff; z-index: 2; 
+            border-right: 1px solid #eee; width: 250px;
+        }
+        .perm-table th:first-child { background: #fdfdfd; }
+
+        /* اسم الموظف والدور */
+        .member-name { font-weight: 700; color: #333; display: block; margin-bottom: 4px; }
+        .role-badge { 
+            display: inline-block; padding: 3px 8px; border-radius: 12px; 
+            background: #eef2f7; color: #555; font-size: 0.75rem; font-weight: 600;
+        }
+
+        /* حالة الصلاحية (الأيقونة الكبيرة) */
+        .status-icon { font-size: 1.2rem; margin-bottom: 8px; display: block; transition: 0.2s; }
+        .st-allow { color: #2ecc71; }
+        .st-deny { color: #e74c3c; }
+        .st-force-allow { color: #27ae60; text-shadow: 0 0 5px rgba(39, 174, 96, 0.2); }
+        .st-force-deny { color: #c0392b; text-shadow: 0 0 5px rgba(192, 57, 43, 0.2); }
+
+        /* أزرار التحكم الصغيرة */
+        .ctrl-btn { 
+            border: 1px solid #eee; background: #fff; color: #ccc; 
+            width: 26px; height: 26px; border-radius: 6px; cursor: pointer; 
+            display: inline-flex; align-items: center; justify-content: center; font-size: 0.8rem; margin: 0 2px; transition: 0.2s;
+        }
+        .ctrl-btn:hover { background: #f9f9f9; color: #888; border-color: #ddd; transform: translateY(-2px); }
+        
+        /* الأزرار النشطة */
+        .btn-grant.active { background: #e8f5e9; color: #2ecc71; border-color: #2ecc71; }
+        .btn-deny.active { background: #fcebeb; color: #e74c3c; border-color: #e74c3c; }
+        
+        /* Legend */
+        .legend-box { 
+            padding: 15px 25px; background: #fafafa; border-top: 1px solid #eee; 
+            display: flex; gap: 20px; font-size: 0.85rem; color: #666; 
+        }
+        .legend-item { display: flex; align-items: center; gap: 6px; }

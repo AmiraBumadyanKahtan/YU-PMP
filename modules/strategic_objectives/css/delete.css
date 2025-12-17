@@ -1,0 +1,124 @@
+/* =========================================================
+   GLOBAL CONTENT WRAPPER
+========================================================= */
+
+.page-wrapper {
+    padding: 2rem;
+    font-family: "Times New Roman", serif;
+}
+/* Page Header */
+.page-header-flex {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 18px;
+}
+.page-title {
+    font-family: "Times New Roman", serif;
+    font-size: 2rem;
+    font-weight: 700;
+    color: #ff8c00;
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.delete-box{
+    background: #fff;
+    padding: 2rem;
+    border-radius: 14px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+
+.delete-card {
+    background: #fff;
+    padding: 35px;
+    width: 500px;
+    border-radius: 15px;
+    box-shadow: 0px 3px 12px rgba(0,0,0,0.1);
+    text-align: center;
+    animation: fadeIn .3s ease;
+}
+
+.delete-icon {
+    font-size: 55px;
+    color: #b30000;
+    margin-bottom: 15px;
+}
+
+.delete-warning {
+    margin-top: 0;
+    color: #b30000;
+    font-weight: 800;
+    margin-bottom: 25px;
+}
+
+.delete-details {
+    text-align: left;
+    background: #f5f7fa;
+    padding: 15px;
+    border-radius: 10px;
+    margin-bottom: 25px;
+    border-left: 4px solid #b30000;
+}
+.delete-title {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #333;
+        }
+
+        .detail-box {
+            padding: 1rem;
+            background: #faf3f3;
+            border-left: 5px solid #b30000;
+            border-radius: 8px;
+            margin: 1rem 0;
+        }
+
+        .detail-box strong {
+            color: #000000ff;
+            font-weight: 600;
+        }
+
+.delete-actions {
+    display: flex;
+    justify-content: space-between;
+}
+.buttons{
+    font-family: "Times New Roman", serif;
+    margin-top: 1.5rem;
+    display: flex;
+    gap: 15px;
+    display: flex;
+    justify-content: space-between;
+}
+
+.btn-delete {
+    font-family: "Times New Roman", serif;
+    background: #c00000;
+    color: #fff;
+    padding: 12px 20px;
+    border-radius: 8px;
+    font-size: 15px;
+    border: none;
+    cursor: pointer;
+}
+
+.btn-delete:hover {
+    background: #a00000;
+}
+
+.btn-cancel {
+    font-family: "Times New Roman", serif;
+    background: #eee;
+    color: #333;
+    padding: 12px 20px;
+    border-radius: 8px;
+    text-decoration: none;
+}
+.btn-cancel:hover{
+    color:white;
+    background: var(--primary-orange);
+}

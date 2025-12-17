@@ -1,0 +1,45 @@
+
+        /* --- Unified CSS for Header & Layout --- */
+        body { font-family: "Varela Round", sans-serif; background-color: #fcfcfc; margin: 0; }
+        .page-wrapper { padding: 2rem; }
+
+        /* The Header Card */
+        .project-header-card {
+            background: #ffffff; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+            margin-bottom: 25px; border-top: 6px solid #ff8c00; overflow: hidden;
+        }
+        .ph-top-section { padding: 30px; display: flex; justify-content: space-between; border-bottom: 1px solid #f0f0f0; }
+        .ph-code-badge { display: inline-block; background-color: #fff3e0; color: #d35400; padding: 5px 12px; border-radius: 20px; font-size: 0.85rem; font-weight: bold; margin-bottom: 10px; }
+        .ph-title { margin: 0 0 10px 0; font-size: 2.2rem; color: #2c3e50; font-weight: 700; }
+        .ph-meta-row { display: flex; gap: 25px; color: #7f8c8d; font-size: 0.95rem; align-items: center; }
+        .ph-meta-item i { color: #95a5a6; margin-right: 5px; }
+
+        /* Stats Bar */
+        .ph-stats-bar { display: flex; padding: 20px 30px; background-color: #fdfdfd; gap: 40px; align-items: center; }
+        .stat-item { display: flex; align-items: center; gap: 15px; }
+        .stat-icon-box { width: 45px; height: 45px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .icon-orange { background: #fff3e0; color: #ff8c00; } /* Budget */
+        .icon-blue { background: #e3f2fd; color: #3498db; }   /* Time */
+        .icon-purple { background: #f3e5f5; color: #9b59b6; } /* Tasks */
+        .icon-red { background: #ffebee; color: #e74c3c; }    /* Risks */
+
+        .stat-info div:first-child { font-size: 0.85rem; color: #888; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+        .stat-info div:last-child { font-size: 1.1rem; font-weight: 800; color: #2c3e50; margin-top: 2px; }
+        
+        /* Tabs */
+        .tabs-container { margin-bottom: 25px; border-bottom: 2px solid #eee; display: flex; gap: 5px; overflow-x: auto; }
+        .tab-link { padding: 12px 20px; text-decoration: none; color: #666; font-weight: 600; border-bottom: 3px solid transparent; transition: 0.2s; white-space: nowrap; }
+        .tab-link:hover { background: #f9f9f9; }
+        .tab-link.active { color: #ff8c00; border-bottom-color: #ff8c00; background: #fff; }
+        .tab-link.locked { color: #ccc; cursor: not-allowed; }
+
+        /* Page Specific */
+        .add-box { background: #fff; padding: 25px; border-radius: 12px; margin-bottom: 30px; border: 1px solid #eee; }
+        .btn-primary { background: #ff8c00; color: #fff; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: bold; }
+        
+        .team-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
+        .member-card { background: #fff; border-radius: 12px; padding: 20px; border: 1px solid #f0f0f0; display: flex; align-items: center; gap: 15px; position: relative; transition:0.2s; }
+        .member-card:hover { transform: translateY(-3px); box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
+        .member-avatar { width: 55px; height: 55px; border-radius: 50%; object-fit: cover; }
+        .role-badge { display: inline-block; background: #e3f2fd; color: #1976d2; padding: 3px 10px; border-radius: 15px; font-size: 0.75rem; font-weight: bold; }
+        .role-pm { background: #fff3e0; color: #f57c00; }

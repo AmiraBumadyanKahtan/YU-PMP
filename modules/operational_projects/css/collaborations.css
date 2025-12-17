@@ -1,0 +1,13 @@
+body { font-family: "Varela Round", sans-serif; background-color: #fcfcfc; margin: 0; }
+        .page-wrapper { padding: 2rem; }
+        
+        /* ... (نفس الستايلات السابقة، يمكنك نسخها من team.php لتوحيد الملف) ... */
+        /* اختصاراً سأضع الستايلات الخاصة هنا */
+        .content-card { background: #fff; padding: 25px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.03); margin-top:20px; }
+        .modern-table { width: 100%; border-collapse: collapse; }
+        .modern-table th { text-align: left; padding: 15px; background: #fff4e1; color: #c86a12; border-bottom: 2px solid #ffe0b2; }
+        .modern-table td { padding: 15px; border-bottom: 1px solid #f9f9f9; }
+        .status-badge { padding: 4px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: bold; }
+        .status-1 { background:#fff3e0; color:#f39c12; } .status-2 { background:#e8f5e9; color:#2ecc71; } .status-3 { background:#ffebee; color:#e74c3c; }
+        .btn-primary { background: #ff8c00; color: white; border: none; padding: 8px 15px; border-radius: 8px; font-weight: bold; text-decoration:none; display:inline-block; }
+    

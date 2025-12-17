@@ -1,0 +1,138 @@
+/* =========================================================
+   GLOBAL CONTENT WRAPPER
+========================================================= */
+
+.page-wrapper {
+    padding: 2rem;
+    font-family: "Varela Round", sans-serif;
+  font-weight: 400;
+  font-style: normal;
+}
+/* Page Header */
+.page-header-flex {
+    font-family: "Varela Round", sans-serif;
+  font-weight: 400;
+  font-style: normal;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 18px;
+}
+.delete-card {
+    background: #fff;
+    padding: 2rem;
+    border-radius: 15px;
+    margin-top: 20px;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.05);
+    text-align: center;
+}
+
+.delete-user-info {
+    margin: 20px 0;
+}
+
+.delete-avatar {
+    width: 110px;
+    height: 110px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid #c00000;
+}
+.page-title {
+    color: #b30000;
+    font-weight: 800;
+}
+
+.delete-name {
+    font-size: 1.4rem;
+    font-weight: bold;
+    margin-top: 10px;
+}
+
+.delete-role {
+    color: #777;
+    font-size: 0.9rem;
+}
+
+.delete-actions {
+    margin-top: 25px;
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+}
+
+.btn-cancel {
+    font-family: "Varela Round", sans-serif;
+  font-weight: 400;
+  font-style: normal;
+    background: #eee;
+    padding: 10px 18px;
+    border-radius: 8px;
+    text-decoration: none;
+    color: #444;
+    font-weight: 600;
+}
+
+.btn-cancel:hover {
+    color:white;
+    background: var(--primary-orange);
+}
+
+.btn-delete-final {
+    font-family: "Varela Round", sans-serif;
+  font-weight: 400;
+  font-style: normal;
+    background: #c00000;
+    border: none;
+    color: white;
+    padding: 11px 15px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+.btn-delete-final:hover {
+    background: #c9302c;
+}
+ .delete-card {
+            font-family: "Varela Round", sans-serif;
+  font-weight: 400;
+  font-style: normal;
+            background: #fff;
+            max-width: 500px;
+            margin: 50px auto;
+            padding: 40px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        .delete-avatar {
+            font-family: "Varela Round", sans-serif;
+  font-weight: 400;
+  font-style: normal;
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin: 20px 0;
+            border: 4px solid #ffe4e4;
+        }
+        .delete-name {font-family: "Varela Round", sans-serif;
+  font-weight: 400;
+  font-style: normal; font-size: 1.5rem; font-weight: bold; color: #333; margin: 0; }
+        .delete-role {font-family: "Varela Round", sans-serif;
+  font-weight: 400;
+  font-style: normal; color: #777; margin-bottom: 30px; }
+        .btn-delete-final {font-family: "Varela Round", sans-serif;
+  font-weight: 400;
+  font-style: normal;
+            background: #d32f2f; color: white; border: none; padding: 10px 20px;
+            border-radius: 5px; cursor: pointer; font-size: 1rem;
+        }
+        .btn-cancel {
+            font-family: "Varela Round", sans-serif;
+  font-weight: 400;
+  font-style: normal;
+            background: #eee; color: #333; padding: 10px 20px;
+            border-radius: 5px; text-decoration: none; margin-right: 10px;
+        }

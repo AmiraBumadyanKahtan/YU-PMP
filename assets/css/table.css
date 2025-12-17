@@ -1,0 +1,18 @@
+/* =========================================================
+   INITIATIVE PAGE WRAPPER
+========================================================= */
+
+
+
+.initiative-page {
+    padding: 60px;
+    padding-top: 80px;
+    padding-left: 290px;
+    font-family: "Times New Roman", serif;
+    background: #fef7ec;
+    min-height: calc(100vh - var(--header-height));
+}
+
+body.sidebar-collapsed .initiative-page {
+    padding-left: 150px;
+}

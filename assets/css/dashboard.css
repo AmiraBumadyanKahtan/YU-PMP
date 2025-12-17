@@ -1,0 +1,486 @@
+/* assets/css/dashboard.css */
+
+/* --- KPI Cards (CEO Style) --- */
+.kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.kpi-card {
+    background: white;
+    border-radius: 16px;
+    padding: 1.5rem;
+    box-shadow: var(--shadow-md);
+    border-top: 4px solid transparent;
+    transition: transform 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    height: 100%;
+}
+
+.kpi-card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-lg);
+}
+
+.kpi-icon-wrapper {
+    width: 50px;
+    height: 50px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+}
+
+.kpi-value {
+    font-size: 2rem;
+    font-weight: 800;
+    color: var(--text-dark);
+    line-height: 1;
+    margin-bottom: 0.5rem;
+}
+
+.kpi-label {
+    color: var(--text-light);
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+/* Colors Variants */
+.kpi-orange { border-color: #FF8C00; }
+.kpi-orange .kpi-icon-wrapper { background: rgba(255, 140, 0, 0.1); color: #FF8C00; }
+
+.kpi-blue { border-color: #3498db; }
+.kpi-blue .kpi-icon-wrapper { background: rgba(52, 152, 219, 0.1); color: #3498db; }
+
+.kpi-red { border-color: #f00909; }
+.kpi-red .kpi-icon-wrapper { background: rgba(52, 152, 219, 0.1); color: #f00909; }
+
+.kpi-green { border-color: #27ae60; }
+.kpi-green .kpi-icon-wrapper { background: rgba(39, 174, 96, 0.1); color: #27ae60; }
+
+.kpi-purple { border-color: #9b59b6; }
+.kpi-purple .kpi-icon-wrapper { background: rgba(155, 89, 182, 0.1); color: #9b59b6; }
+
+/* --- Strategy Tabs System --- */
+.tabs-container {
+    background: white;
+    border-radius: 16px;
+    box-shadow: var(--shadow-md);
+    overflow: hidden;
+    margin-top: 2rem;
+}
+
+.tabs-header {
+    display: flex;
+    background: #faf3e8;
+    border-bottom: 1px solid #eee;
+    overflow-x: auto;
+    padding: 0 1rem;
+}
+
+.tab-btn {
+    padding: 1.2rem 1.5rem;
+    border: none;
+    background: transparent;
+    font-weight: 600;
+    color: var(--text-light);
+    cursor: pointer;
+    border-bottom: 3px solid transparent;
+    transition: all 0.3s;
+    white-space: nowrap;
+    font-size: 0.95rem;
+}
+
+.tab-btn:hover {
+    color: var(--primary-orange);
+    background: rgba(255, 140, 0, 0.05);
+}
+
+.tab-btn.active {
+    color: var(--primary-orange);
+    border-bottom-color: var(--primary-orange);
+    background: white;
+    border-radius: 10px 10px 0 0;
+}
+
+.tab-content {
+    padding: 2rem;
+    display: none;
+    animation: fadeIn 0.4s ease;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Table Styles for Strategy */
+.strategy-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.strategy-table th {
+    text-align: left;
+    padding: 1rem;
+    background: #f8f9fa;
+    color: var(--text-dark);
+    font-weight: 700;
+    border-bottom: 2px solid #eee;
+}
+
+body.rtl .strategy-table th { text-align: right; }
+
+.strategy-table td {
+    padding: 1rem;
+    border-bottom: 1px solid #eee;
+    vertical-align: middle;
+}
+
+.strategy-table tr:hover {
+    background-color: #faf3e8;
+}
+/* assets/css/dashboard.css */
+
+/* 1. Modern Colorful Cards (مثل الصورة المرفقة) */
+.stats-card-modern {
+    border-radius: 15px;
+    padding: 1.5rem;
+    color: white;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    transition: transform 0.3s ease;
+    min-height: 140px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.stats-card-modern:hover {
+    transform: translateY(-5px);
+}
+
+.stats-card-modern h3 {
+    font-size: 1rem;
+    font-weight: 600;
+    color: rgba(255,255,255,0.9);
+    margin-bottom: 0.5rem;
+}
+
+.stats-card-modern .value {
+    font-size: 2.5rem;
+    font-weight: 700;
+}
+
+.stats-card-modern .icon-bg {
+    position: absolute;
+    right: 10px;
+    bottom: 10px;
+    font-size: 4rem;
+    opacity: 0.2;
+    transform: rotate(-15deg);
+}
+
+body.rtl .stats-card-modern .icon-bg {
+    right: auto;
+    left: 10px;
+}
+
+/* Gradients */
+.bg-gradient-blue { background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%); }
+.bg-gradient-green { background: linear-gradient(135deg, #4CAF50 0%, #388E3C 100%); }
+.bg-gradient-orange { background: linear-gradient(135deg, #FF9800 0%, #F57C00 100%); }
+.bg-gradient-red { background: linear-gradient(135deg, #F44336 0%, #D32F2F 100%); }
+
+/* 2. Enhanced Project List (مثل الصورة المرفقة) */
+.project-item {
+    background: white;
+    border-radius: 12px;
+    padding: 1rem 1.5rem;
+    margin-bottom: 1rem;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    transition: all 0.2s;
+}
+
+.project-item:hover {
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    transform: translateX(5px);
+}
+
+.project-info h4 {
+    margin: 0;
+    font-size: 1rem;
+    color: #333;
+}
+
+.project-meta {
+    font-size: 0.85rem;
+    color: #777;
+    margin-top: 4px;
+}
+
+/* 3. Budget Bar (مثل الصورة المرفقة) */
+.budget-section {
+    background: #f8f9fa;
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-top: 1rem;
+}
+
+.budget-labels {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 0.8rem;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #555;
+}
+
+.budget-progress-thick {
+    height: 20px;
+    background: #e9ecef;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.budget-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #2196F3, #00BCD4);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 0.75rem;
+    font-weight: bold;
+}
+
+/* 4. Task Cards (Right Side) */
+.task-card-small {
+    background: white;
+    border: 1px solid #eee;
+    border-radius: 10px;
+    padding: 1rem;
+    margin-bottom: 0.8rem;
+    border-left: 4px solid transparent;
+}
+
+.task-critical { border-left-color: #F44336; }
+.task-high { border-left-color: #FF9800; }
+.task-medium { border-left-color: #2196F3; }
+
+.task-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 0.5rem;
+}
+
+.priority-badge {
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 0.7rem;
+    color: white;
+    font-weight: bold;
+}
+
+.badge-critical { background: #F44336; }
+.badge-high { background: #FF9800; }
+
+/* --- Budget Overview Cards (White Style) --- */
+.budget-metric-card {
+    background: white;
+    border-radius: 16px;
+    padding: 1.5rem;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.3s ease;
+    border-top: 5px solid #ddd; /* Default color */
+}
+
+.budget-metric-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+}
+
+/* Header area with Title and Icon */
+.metric-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 1.5rem;
+}
+
+.metric-title {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #555;
+    margin: 0;
+}
+
+.metric-icon {
+    width: 45px;
+    height: 45px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.4rem;
+    color: white;
+}
+
+/* The Big Number */
+.metric-value {
+    font-size: 2rem;
+    font-weight: 800;
+    color: #2D3748;
+    margin-bottom: 0.5rem;
+    font-family: 'Segoe UI', sans-serif;
+}
+
+.metric-label {
+    font-size: 0.8rem;
+    color: #888;
+    font-weight: 500;
+}
+
+/* Color Variants */
+.metric-orange { border-top-color: #FF9800; }
+.metric-orange .metric-icon { background-color: #FF9800; }
+
+.metric-red { border-top-color: #F44336; }
+.metric-red .metric-icon { background-color: #F44336; }
+
+.metric-green { border-top-color: #4CAF50; }
+.metric-green .metric-icon { background-color: #4CAF50; }
+
+.metric-blue { border-top-color: #2196F3; }
+.metric-blue .metric-icon { background-color: #2196F3; }
+
+/* --- Chart Containers --- */
+.chart-container {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 16px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    height: 100%;
+    min-height: 350px; /* ضمان ارتفاع مناسب للرسم */
+}
+
+.chart-title {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #333;
+    margin-bottom: 1.5rem;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #FF8C00; /* الخط البرتقالي تحت العنوان */
+    display: inline-block;
+}
+/* --- Fixes & Polish (تعديلات تحسين المظهر) --- */
+
+/* 1. Smart Section Title (الخط البرتقالي الذكي) */
+.section-title-decorated {
+    margin: 0;
+    padding: 0 15px;
+    /* هذا الكود السحري يجعل الخط يتبع اتجاه اللغة تلقائياً */
+    border-inline-start: 5px solid var(--primary-orange);
+    line-height: 1.2;
+    color: var(--primary-black);
+    margin-bottom: 15px;
+}
+
+/* 2. Softer Project Cards */
+.project-card {
+    background: white;
+    border-radius: 16px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.04); /* ظل ناعم جداً */
+    transition: all 0.3s ease;
+    border: 1px solid rgba(0,0,0,0.03);
+    position: relative;
+    overflow: hidden;
+}
+
+.project-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+    border-color: rgba(255, 140, 0, 0.2);
+}
+
+/* الشريط الملون الجانبي للكارد */
+.card-status-border {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    /* يمين في العربي، يسار في الإنجليزي */
+    inset-inline-end: 0; 
+    width: 6px;
+}
+
+/* 3. Better Quick Action Buttons */
+.btn-action-light {
+    background: white;
+    border: 1px solid #eee;
+    color: #555;
+    width: 100%;
+    padding: 12px 15px;
+    margin-bottom: 10px;
+    border-radius: 10px;
+    text-align: start; /* محاذاة حسب اللغة */
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 600;
+}
+
+.btn-action-light:hover {
+    background: #fff8f0; /* خلفية برتقالية فاتحة جداً */
+    border-color: var(--primary-orange);
+    color: var(--primary-orange);
+    transform: translateX(3px);
+}
+
+body.rtl .btn-action-light:hover {
+    transform: translateX(-3px);
+}
+
+.btn-action-light i {
+    width: 24px;
+    text-align: center;
+    font-size: 1.1rem;
+}
+
+/* 4. KPI Icons Polish */
+.kpi-card .kpi-icon-wrapper {
+    width: 55px;
+    height: 55px;
+    border-radius: 14px; /* تدوير الزوايا أكثر */
+    font-size: 1.6rem;
+}
+
+/* 5. Project Labels */
+.project-label {
+    font-size: 0.85rem;
+    color: #888;
+    font-weight: 600;
+    margin-bottom: 8px;
+    display: block;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}

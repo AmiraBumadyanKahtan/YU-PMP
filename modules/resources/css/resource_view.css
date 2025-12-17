@@ -1,0 +1,152 @@
+/* =========================================================
+   GLOBAL CONTENT WRAPPER
+========================================================= */
+
+.page-wrapper {
+    padding: 2rem;
+    font-family: "Times New Roman", serif;
+}
+/* Page Header */
+.page-header-flex {
+    font-family: "Times New Roman", serif;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 18px;
+}
+
+.page-title {
+    font-family: "Times New Roman", serif;
+    font-size: 2rem;
+    font-weight: 700;
+    color: #ff8c00;
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+.resource-card {
+    background: white;
+    padding: 2rem;
+    border-radius: 16px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+    margin-bottom: 2rem;
+}
+
+.resource-info .info-row {
+    display: flex;
+    margin-bottom: 1rem;
+    font-size: 1rem;
+}
+
+.resource-info .info-row label {
+    width: 180px;
+    font-weight: 700;
+    color: #333;
+}
+
+.resource-info .info-row span {
+    color: #444;
+}
+
+.badge-active {
+    background: #d4f8e3;
+    color: #1b7f3a;
+    padding: 4px 10px;
+    border-radius: 8px;
+    font-size: 0.85rem;
+}
+
+.badge-inactive {
+    background: #ffe4e4;
+    color: #ad1c1c;
+    padding: 4px 10px;
+    border-radius: 8px;
+    font-size: 0.85rem;
+}
+
+.badge-category {
+    background: #fff4e0;
+    color: #b56a00;
+    padding: 4px 10px;
+    border-radius: 8px;
+    font-size: 0.85rem;
+}
+
+.section-title {
+    font-size: 1.4rem;
+    margin-bottom: 1rem;
+    color: #c86a12;
+    font-weight: 700;
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1.5rem;
+}
+
+.stat-card {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 14px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+    text-align: center;
+}
+
+.stat-icon {
+    font-size: 2rem;
+    color: #c86a12;
+    margin-bottom: 10px;
+}
+
+.stat-number {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: #222;
+}
+
+.stat-label {
+    font-size: 0.9rem;
+    color: #555;
+}
+
+        /* ---------- Buttons ----------- */
+        .details-actions {
+            display: flex;
+            gap: .7rem;
+            margin-top: 1.4rem;
+        }
+
+        .btn {
+            padding: 8px 15px;
+            border-radius: 8px;
+            font-size: .9rem;
+            text-decoration: none;
+            border: none;
+            cursor: pointer;
+        }
+
+        .btn-back {
+            background: #eee;
+            color: #444;
+        }
+        .btn-back:hover {
+            background: #ff8c00;
+            color: #ffffff;
+        }
+
+        .btn-edit { font-family: "Times New Roman", serif;background: #def5e7; color: #1b7f3a; }
+        .btn-edit:hover{
+            color:#def5e7;
+            background: #1b7f3a;
+        }
+        .btn-delete {font-family: "Times New Roman", serif; background: #ffe4e4; color: #ad1c1c; }
+        .btn-delete:hover{
+            color: #ffe4e4;
+            background: #ad1c1c;
+        }
+
+        .btn:hover {
+            opacity: .85;
+        }

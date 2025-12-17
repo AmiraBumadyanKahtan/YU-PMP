@@ -1,0 +1,163 @@
+/* -------------------------
+   Edit User Page Styling
+--------------------------*/
+
+.page-wrapper {
+    padding: 30px;
+    font-family: "Varela Round", sans-serif;
+  font-weight: 400;
+  font-style: normal;
+}
+
+/* Page Header */
+.page-header-flex {
+    font-family: "Varela Round", sans-serif;
+  font-weight: 400;
+  font-style: normal;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 18px;
+}
+
+.page-title {
+    font-family: "Varela Round", sans-serif;
+  font-weight: 400;
+  font-style: normal;
+    font-size: 2rem;
+    font-weight: 700;
+    color: #ff8c00;
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+/* Form Card */
+.form-card {
+    font-family: "Varela Round", sans-serif;
+  font-weight: 400;
+  font-style: normal;
+    background: #ffffff;
+    border-radius: 14px;
+    padding: 30px;
+    margin: 0 auto;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+}
+
+/* Grid Layout */
+.form-grid {
+    font-family: "Varela Round", sans-serif;
+  font-weight: 400;
+  font-style: normal;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 40px;
+}
+
+/* Labels */
+.form-card label {
+    font-family: "Varela Round", sans-serif;
+  font-weight: 400;
+  font-style: normal;
+    font-size: 14px;
+    color: #c86a12;
+    font-weight: 600;
+    display: block;
+    margin-bottom: 6px;
+}
+
+/* Inputs */
+.form-card input[type="text"],
+.form-card input[type="email"],
+.form-card input[type="file"],
+.form-card select {
+    font-family: "Varela Round", sans-serif;
+  font-weight: 400;
+  font-style: normal;
+    width: 100%;
+    padding: 10px 12px;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+    background: #fafafa;
+    font-size: 14px;
+    margin-bottom: 18px;
+    transition: 0.2s;
+}
+
+.form-card input:focus,
+.form-card select:focus {
+    border-color: #cc6d1c;
+    outline: none;
+    background: #fff;
+}
+
+/* Save Button */
+.btn-primary {
+            font-family: "Varela Round", sans-serif;
+  font-weight: 400;
+  font-style: normal;
+            background: var(--primary-orange);
+            color: white;
+            padding: 10px 18px;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: bold;
+            border: none;
+            padding: 10px 18px;
+            font-size: 14px;
+        }
+        .btn-primary:hover{
+            color:white;
+            background: black;
+        }
+        .actions a {
+            font-family: "Varela Round", sans-serif;
+  font-weight: 400;
+  font-style: normal;
+            padding: 6px 10px;
+            border-radius: 8px;
+            font-size: 14px;
+            text-decoration: none;
+            margin-right: 5px;
+            transition: .2s;
+        }
+
+/* Back Button */
+        .btn-secondary {
+            font-family: "Varela Round", sans-serif;
+  font-weight: 400;
+  font-style: normal;
+            background: #eee;
+            color: #333;
+            padding: 12px 20px;
+            border-radius: 8px;
+            text-decoration: none;
+        }
+        .btn-secondary:hover{
+            color:white;
+            background: var(--primary-orange);
+        }
+
+/* Alerts */
+.alert {
+    font-family: "Varela Round", sans-serif;
+  font-weight: 400;
+  font-style: normal;
+    padding: 12px 18px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    font-weight: 600;
+}
+
+.alert-success {
+    background: #dff6dd;
+    color: #276d32;
+    border-left: 5px solid #2e944b;
+}
+
+.alert-error {
+    background: #ffe1e1;
+    color: #a12727;
+    border-left: 5px solid #c0392b;
+}

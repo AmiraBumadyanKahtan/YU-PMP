@@ -1,0 +1,174 @@
+/* Page Header */
+.page-header-flex {
+    font-family: "Varela Round", sans-serif;
+  font-weight: 400;
+  font-style: normal;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 18px;
+}
+
+.page-wrapper {
+    padding: 30px;
+    font-family: "Varela Round", sans-serif;
+  font-weight: 400;
+  font-style: normal;
+}
+.page-title {
+    font-family: "Varela Round", sans-serif;
+  font-weight: 400;
+  font-style: normal;
+    font-size: 2rem;
+    font-weight: 700;
+    color: #ff8c00;
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+/* PAGE WRAPPER */
+.user-form-wrapper {
+    font-family: "Varela Round", sans-serif;
+  font-weight: 400;
+  font-style: normal;
+    background: #fff;
+    padding: 35px;
+    border-radius: 16px;
+    margin-top: 25px;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.07);
+}
+
+/* GRID SYSTEM */
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 22px;
+}
+
+.form-group {
+    font-family: "Varela Round", sans-serif;
+  font-weight: 400;
+  font-style: normal;
+    display: flex;
+    flex-direction: column;
+}
+
+.form-group label {
+    font-family: "Varela Round", sans-serif;
+  font-weight: 400;
+  font-style: normal;
+    font-weight: 700;
+    font-size: 1rem;
+    margin-bottom: 6px;
+    color: #444;
+}
+
+.form-group input,
+.form-group select {
+    font-family: "Varela Round", sans-serif;
+  font-weight: 400;
+  font-style: normal;
+    padding: 12px 14px;
+    font-size: 1rem;
+    border-radius: 10px;
+    border: 1px solid #ddd;
+    background: #fafafa;
+    transition: border-color .2s, background .2s;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+    border-color: #ff8c00;
+    background: #fff;
+    outline: none;
+}
+
+/* BUTTON */
+.save-btn {
+    font-family: "Varela Round", sans-serif;
+  font-weight: 400;
+  font-style: normal;
+    display: inline-block;
+    padding: 14px 26px;
+    background: #FF8C00;
+    color: white;
+    font-size: 1rem;
+    font-weight: 600;
+    border-radius: 10px;
+    border: none;
+    margin-top: 25px;
+    cursor: pointer;
+    transition: .2s;
+}
+
+.save-btn:hover {
+    color:white;
+    background: black;
+}
+/* Back Button */
+        .btn-secondary {
+            font-family: "Varela Round", sans-serif;
+  font-weight: 400;
+  font-style: normal;
+            background: #eee;
+            color: #333;
+            padding: 12px 20px;
+            border-radius: 8px;
+            text-decoration: none;
+        }
+        .btn-secondary:hover{
+            color:white;
+            background: var(--primary-orange);
+        }
+/* PAGE TITLE */
+.page-title i {
+    font-family: "Varela Round", sans-serif;
+  font-weight: 400;
+  font-style: normal;
+    margin-right: 10px;
+    color: #FF8C00;
+}
+
+/* ALERTS */
+.alert {
+    font-family: "Varela Round", sans-serif;
+  font-weight: 400;
+  font-style: normal;
+    padding: 14px 20px;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    margin-bottom: 18px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.alert-success {
+    font-family: "Varela Round", sans-serif;
+  font-weight: 400;
+  font-style: normal;
+    background: #d4f7d8;
+    border: 1px solid #8edc96;
+    color: #276231;
+}
+
+.alert-error {
+    font-family: "Varela Round", sans-serif;
+  font-weight: 400;
+  font-style: normal;
+    background: #ffe1e1;
+    border: 1px solid #ff9c9c;
+    color: #a62121;
+}
+
+.alert button {
+    font-family: "Varela Round", sans-serif;
+  font-weight: 400;
+  font-style: normal;
+    background: none;
+    border: none;
+    font-size: 1rem;
+    cursor: pointer;
+    color: inherit;
+}
