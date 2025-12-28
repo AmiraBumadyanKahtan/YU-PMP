@@ -7,130 +7,127 @@ $sidebarItems = [
       "title"       => "Dashboard",
       "icon"        => "fa-solid fa-home",
       "url"         => "index.php",
-      "permissions" => ["view_reports", "view_ceo_dashboard", "view_approvals"], // عرض للجميع تقريباً
+     
+    ],
+    [
+      "title"       => "CEO Dashboards",
+      "icon"        => "fa-solid fa-chart-pie",
+      "url"         => "modules/dashboard/ceo_org.php",
+      "permissions" => ["view_ceo_dashboard"], // صلاحية جديدة أضفناها
     ],
     [
       "title"       => "Transparency View",
       "icon"        => "fa-solid fa-globe",
-      "url"         => "public_dashboard.php",
-      "permissions" => ["view_project"], // يظهر لجميع الموظفين الذين لديهم صلاحية عرض المشاريع
-    ],
-    [
-      "title"       => "Insights",
-      "icon"        => "fa-solid fa-chart-pie",
-      "url"         => "modules/dashboard/project_dashboard.php", // تأكد أن المسار مطابق لمكان الملف الجديد
-      "permissions" => ["view_project"], // متاح لأي شخص لديه حق رؤية المشاريع
+      "url"         => "modules/dashboard/public_dashboard.php",
+      "permissions" => ["view_public_dashboard"], // صلاحية جديدة أضفناها
     ],
   ],
 
-  "PROJECTS" => [
+  "STRATEGY & PROJECTS" => [
     [
-      "title"       => "Projects",
-      "icon"        => "fa-solid fa-diagram-project",
-      "url"         => "modules/operational_projects/index.php",
-      "permissions" => ["view_project"],
-    ],
-    [
-      "title"       => "Project Updates",
-      "icon"        => "fa-solid fa-rotate",
-      "url"         => "modules/project_updates/create.php",
-      "permissions" => ["send_progress_update"],
+      "title"       => "Strategic Pillars",
+      "icon"        => "fa-solid fa-landmark",
+      "url"         => "modules/pillars/index.php",
+      "permissions" => ["pillar_view"],
     ],
     [
       "title"       => "Initiatives",
       "icon"        => "fa-solid fa-chess",
       "url"         => "modules/initiatives/list.php",
-      "permissions" => ["view_initiative"],
+      "permissions" => ["init_view_dashboard"],
     ],
     [
-      "title"       => "Strategic Pillars",
-      "icon"        => "fa-solid fa-layer-group",
-      "url"         => "modules/pillars/index.php",
-      "permissions" => ["view_pillars", "approve_pillar"],
+      "title"       => "Projects",
+      "icon"        => "fa-solid fa-diagram-project",
+      "url"         => "modules/operational_projects/index.php",
+      "permissions" => ["proj_view_dashboard"],
     ],
     [
       "title"       => "Strategic Objectives",
       "icon"        => "fa-solid fa-bullseye",
       "url"         => "modules/strategic_objectives/list.php",
-      "permissions" => ["view_strategic_objectives"],
+      "permissions" => ["view_strategic_objectives"], // صلاحية جديدة
     ],
     [
-      "title"       => "KPIs",
+      "title"       => "KPIs Center",
       "icon"        => "fa-solid fa-chart-line",
       "url"         => "modules/kpis/list.php",
-      "permissions" => ["manage_project_kpis", "view_initiative"],
+      "permissions" => ["view_all_kpis", "pkpi_view", "ikpi_view"], // تظهر إذا كان لديه أي واحدة منها
     ],
   ],
 
-  "APPROVALS" => [
+  "WORKFLOW" => [
     [
       "title"       => "My Approvals",
       "icon"        => "fa-solid fa-check-double",
       "url"         => "modules/approvals/dashboard.php",
-      "permissions" => ["view_approvals"],
+      "permissions" => ["view_approvals"], // صلاحية جديدة
     ],
     [
-      "title"       => "CEO Updates",
-      "icon"        => "fa-solid fa-file-lines",
-      "url"         => "modules/reports/ceo_updates.php",
-      "permissions" => ["view_project_updates_ceo"], // تأكد أن هذا الإذن ممنوح لدور CEO في قاعدة البيانات
-    ],
-    [
-      "title"       => "Incoming Collab Requests",
+      "title"       => "Collab Requests",
       "icon"        => "fa-solid fa-handshake",
       "url"         => "modules/collaborations/index.php",
-      "permissions" => ["manage_project_team"], // فقط لرؤساء الأقسام
+      "permissions" => ["proj_manage_team"], // لرؤساء الأقسام والمدراء (المسؤولين عن قبول الموظفين)
     ],
   ],
 
-  "ADMIN CONTROL" => [
+  "ADMINISTRATION" => [
     [
       "title"       => "Departments",
       "icon"        => "fa-solid fa-building",
       "url"         => "modules/departments/list.php",
-      "permissions" => ["manage_departments"],
+      "permissions" => ["sys_dept_view"],
     ],
     [
       "title"       => "Users",
       "icon"        => "fa-solid fa-users",
       "url"         => "modules/users/list.php",
-      "permissions" => ["manage_users"],
+      "permissions" => ["sys_user_view"],
     ],
     [
       "title"       => "Branches",
       "icon"        => "fa-solid fa-map-location-dot",
       "url"         => "modules/branches/list.php",
-      "permissions" => ["manage_departments"], // أو صلاحية جديدة إذا أردت
+      "permissions" => ["sys_dept_branches"],
     ],
     [
       "title"       => "Roles & Permissions",
       "icon"        => "fa-solid fa-shield-halved",
       "url"         => "modules/roles/list.php",
-      "permissions" => ["manage_rbac"], 
+      "permissions" => ["sys_role_view"], 
     ],
+    [
+        "title"       => "Announcements",
+        "icon"        => "fa-solid fa-bullhorn",
+        "url"         => "modules/announcements/list.php",
+        "permissions" => ["sys_manage_announcements"],
+    ],
+  ],
+
+  "SYSTEM SETTINGS" => [
     [
       "title"       => "Approval Workflows",
       "icon"        => "fa-solid fa-code-branch",
       "url"         => "modules/workflows/list.php",
-      "permissions" => ["manage_rbac"], // سنستخدم صلاحية إدارة الصلاحيات مبدئياً
+      "permissions" => ["manage_workflows", "sys_settings_manage"],
     ],
     [
       "title"       => "Project Roles",
       "icon"        => "fa-solid fa-id-badge",
       "url"         => "modules/project_roles/list.php",
-      "permissions" => ["manage_rbac"],
+      "permissions" => ["manage_project_roles", "sys_settings_manage"],
     ],
     [
-      "title"       => "Resources",
+      "title"       => "Resources Types",
       "icon"        => "fa-solid fa-box",
       "url"         => "modules/resources/list.php",
-      "permissions" => ["manage_project_resources"],
+      "permissions" => ["sys_settings_manage"], // عادة إدارة الأنواع تكون للأدمن
     ],
     [
-      "title"       => "Pillar Statuses",
-      "icon"        => "fa-solid fa-flag",
-      "url"         => "modules/pillar_status/list.php",
-      "permissions" => ["view_pillars"],
+      "title"       => "System Logs",
+      "icon"        => "fa-solid fa-list-ul",
+      "url"         => "modules/logs/index.php",
+      "permissions" => ["sys_view_logs"],
     ],
   ],
 ];

@@ -1,0 +1,115 @@
+        /* Page Header */
+.page-header-flex {
+    font-family: "Varela Round", sans-serif;
+  font-weight: 400;
+  font-style: normal;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 18px;
+}
+
+.page-wrapper {
+    padding: 30px;
+    font-family: "Varela Round", sans-serif;
+  font-weight: 400;
+  font-style: normal;
+}
+.page-title {
+    font-family: "Varela Round", sans-serif;
+  font-weight: 400;
+  font-style: normal;
+    font-size: 2rem;
+    font-weight: 700;
+    color: #ff8c00 !important;
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+        /* General Layout */
+        body { font-family: "Varela Round", sans-serif; background-color: #f8f9fa; }
+        .todo-container { max-width: 900px; margin: 0 auto; }
+        
+        /* Input Card Styling */
+        .todo-input-card { 
+            background: #fff; padding: 25px; border-radius: 12px; 
+            box-shadow: 0 4px 20px rgba(0,0,0,0.04); margin-bottom: 30px; 
+            display: flex; gap: 15px; align-items: flex-start; border: 1px solid #edf2f7;
+        }
+        .todo-input-group { flex: 1; display: flex; flex-direction: column; gap: 12px; }
+        
+        .todo-input-card input, .todo-input-card textarea { 
+            border: 2px solid #edf2f7; padding: 12px 15px; border-radius: 8px; 
+            font-family: inherit; font-size: 0.95rem; transition: all 0.2s; outline: none; width: 100%; box-sizing: border-box;
+        }
+        .todo-input-card input:focus, .todo-input-card textarea:focus { border-color: #ff8c00; background: #fffaf0; }
+        
+        .date-input-wrapper { position: relative; width: 160px; }
+        
+        .btn-add { 
+            font-family: "Varela Round", sans-serif;
+            background:#fff3e0; color: #ef6c00; border: none; 
+            padding: 0 25px; 
+            border-radius: 8px; cursor: pointer; height: 45px; font-weight: 600; 
+            font-size: 1rem; transition: 0.2s; display: flex; align-items: center; gap: 8px;
+            box-shadow: 0 4px 10px #ef6c0047;
+        }
+        .btn-add:hover { background:#ef6c00; color: #ffffff; translateY(-2px); box-shadow: 0 6px 15px rgba(255, 140, 0, 0.3); }
+
+        /* Task List Styling */
+        .todo-list { list-style: none; padding: 0; margin: 0; }
+        .todo-item { 
+            background: #fff; border-radius: 10px; margin-bottom: 12px; padding: 20px; 
+            display: flex; align-items: flex-start; gap: 18px; 
+            border: 1px solid #f0f0f0; border-left: 5px solid #bdc3c7; /* Default gray border */
+            transition: all 0.2s ease; position: relative;
+        }
+        
+        .todo-item:hover { transform: translateX(5px); box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
+        .todo-item.system-task { border-left-color: #ff8c00; } /* Orange for System */
+        .todo-item.personal-task { border-left-color: #3498db; } /* Blue for Personal */
+        
+        .todo-item.completed { opacity: 0.6; background: #fafafa; border-left-color: #2ecc71; }
+        .todo-item.completed .todo-title { text-decoration: line-through; color: #95a5a6; }
+
+        /* Checkbox Styling */
+        .checkbox-wrapper { padding-top: 4px; }
+        .todo-checkbox { 
+            width: 22px; height: 22px; cursor: pointer; accent-color: #27ae60; 
+            border-radius: 6px;
+        }
+
+        /* Content Styling */
+        .todo-content { flex: 1; }
+        .todo-title { font-size: 1.15rem; font-weight: 700; color: #2c3e50; margin-bottom: 6px; line-height: 1.4; display: block; }
+        .todo-desc { font-size: 0.95rem; color: #666; margin-bottom: 12px; line-height: 1.5; display: block; }
+
+        /* Meta Data Row */
+        .todo-meta-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+        
+        .tag { padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; display: inline-flex; align-items: center; gap: 5px; letter-spacing: 0.5px; }
+        .tag-system { background: #fff3e0; color: #ef6c00; }
+        .tag-personal { background: #e3f2fd; color: #1565c0; }
+        .tag-date { background: #f1f2f6; color: #57606f; }
+        .tag-overdue { background: #ffebee; color: #c0392b; border: 1px solid #ffcdd2; }
+
+        /* Action Button (The Smart Link) */
+        .action-btn-link {
+            text-decoration: none; background: #e8f5e9; color: #2e7d32; 
+            padding: 5px 12px; border-radius: 6px; font-size: 0.8rem; font-weight: 700;
+            transition: all 0.2s; border: 1px solid #c8e6c9; display: inline-flex; align-items: center; gap: 6px;
+        }
+        .action-btn-link:hover { background: #2e7d32; color: #fff; transform: translateY(-1px); box-shadow: 0 2px 5px rgba(46, 125, 50, 0.2); }
+        .action-btn-link i { font-size: 0.9em; }
+
+        /* Delete Button */
+        .btn-del-todo { 
+            color: #bdc3c7; cursor: pointer; background: none; border: none; font-size: 1.1rem; 
+            padding: 5px; transition: 0.2s; margin-left: 10px;
+        }
+        .btn-del-todo:hover { color: #e74c3c; background: #fff5f5; border-radius: 50%; }
+
+        /* Empty State */
+        .empty-state { text-align: center; padding: 50px; color: #a0aec0; }
+        .empty-state i { font-size: 3rem; margin-bottom: 15px; color: #e2e8f0; }

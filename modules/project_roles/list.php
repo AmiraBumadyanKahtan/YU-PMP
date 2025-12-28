@@ -1,9 +1,11 @@
 <?php
+// modules/project_roles/list.php
+
 require_once "../../core/config.php";
 require_once "../../core/auth.php";
 require_once "functions.php";
 
-if (!Auth::can('manage_rbac')) die("Access Denied");
+if (!Auth::can('manage_project_roles')) die("Access Denied");
 
 $roles = getProjectRoles();
 ?>
@@ -13,9 +15,10 @@ $roles = getProjectRoles();
     <meta charset="UTF-8">
     <title>Project Roles</title>
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/layout.css">
-    <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/content.css">
     <link rel="icon" type="image/png" href="<?php echo BASE_URL; ?>assets/images/favicon-32x32.png">
+    <link rel="stylesheet" href="css/list.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Varela+Round&display=swap" rel="stylesheet">
 </head>
 <body style="margin:0;">
 
@@ -27,22 +30,36 @@ $roles = getProjectRoles();
 
     <div class="page-header-flex">
         <h1 class="page-title"><i class="fa-solid fa-id-badge"></i> Project Roles Configuration</h1>
-        <a href="create.php" class="btn-primary">+ New Role</a>
+        <a href="create.php" class="btn-primary">
+            <i class="fa-solid fa-plus"></i> New Role
+        </a>
     </div>
 
-    <div class="roles-grid" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap:20px;">
-        <?php foreach ($roles as $r): ?>
-            <div class="card" style="background:#fff; padding:20px; border-radius:8px; border-top:4px solid #3498db; box-shadow:0 2px 5px rgba(0,0,0,0.05);">
-                <h3 style="margin-top:0; color:#2c3e50;"><?= htmlspecialchars($r['name']) ?></h3>
-                <p style="color:#777; height:40px;"><?= htmlspecialchars($r['description']) ?></p>
-                
-                <div style="border-top:1px solid #eee; margin-top:15px; padding-top:15px; text-align:right;">
-                    <a href="edit.php?id=<?= $r['id'] ?>" class="btn-secondary" style="font-size:0.9rem;">
-                        <i class="fa-solid fa-shield-halved"></i> Configure Permissions
-                    </a>
-                </div>
+    <div class="roles-grid">
+        <?php if(empty($roles)): ?>
+            <div class="empty-state">
+                <i class="fa-solid fa-users-slash"></i>
+                <h3>No roles defined yet</h3>
+                <p>Create roles to assign permissions within projects.</p>
             </div>
-        <?php endforeach; ?>
+        <?php else: ?>
+            <?php foreach ($roles as $r): ?>
+                <div class="role-card">
+                    <div class="role-content">
+                        <h3><i class="fa-regular fa-user"></i> <?= htmlspecialchars($r['name']) ?></h3>
+                        <div class="role-desc">
+                            <?= htmlspecialchars($r['description']) ?>
+                        </div>
+                    </div>
+                    
+                    <div class="role-actions">
+                        <a href="edit.php?id=<?= $r['id'] ?>" class="btn-manage">
+                            <i class="fa-solid fa-shield-halved"></i> Configure Permissions
+                        </a>
+                    </div>
+                </div>
+            <?php endforeach; ?>
+        <?php endif; ?>
     </div>
 
 </div>

@@ -1,11 +1,14 @@
 /* التنسيقات المتناسقة والبسيطة */
-        body { font-family: "Varela Round", sans-serif; background-color: #fcfcfc; margin: 0; }
+        body {margin:0; font-family: "Varela Round", sans-serif; background-color: #fcfcfc; margin: 0; }
         .page-wrapper { padding: 2rem; }
         
         /* البطاقة الرئيسية */
         .content-card { 
-            background: #fff; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.03); 
-            border: 1px solid #f0f0f0; overflow: hidden; margin-top: 20px;
+                background: #fff;
+    padding: 25px;
+    border-radius: 12px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.03);
+    margin-top: 20px;
         }
         
         .card-header {
@@ -66,3 +69,42 @@
             display: flex; gap: 20px; font-size: 0.85rem; color: #666; 
         }
         .legend-item { display: flex; align-items: center; gap: 6px; }
+
+        .locked-banner { 
+            background: #fffbeb;
+            border: 1px solid #fcd34d;
+            color: #92400e;
+            padding: 16px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 0.95rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        }
+        .member-info { display: flex; flex-direction: column; }
+        .member-name { font-weight: 600; color: #2c3e50; }
+        .member-role { font-size: 0.75rem; color: #7f8c8d; background: #eee; padding: 2px 6px; border-radius: 4px; width: fit-content; margin-top: 2px; }
+
+        /* Icons Status */
+        .st-icon { font-size: 1.2rem; margin-bottom: 5px; }
+        .st-allowed { color: #27ae60; } /* Green check */
+        .st-denied { color: #bdc3c7; } /* Grey x */
+        .st-forced-allow { color: #2980b9; } /* Blue check (Override) */
+        .st-forced-deny { color: #c0392b; } /* Red x (Override) */
+
+        /* Control Buttons */
+        .perm-controls { display: flex; gap: 2px; justify-content: center; opacity: 0.2; transition: 0.2s; }
+        .perm-cell:hover .perm-controls { opacity: 1; }
+        .btn-perm { border: none; width: 22px; height: 22px; border-radius: 4px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; color: #fff; }
+        .btn-grant { background-color: #27ae60; }
+        .btn-deny { background-color: #c0392b; }
+        .btn-reset { background-color: #95a5a6; }
+        
+        /* Tooltip Header */
+        .module-header { font-size: 0.7rem; text-transform: uppercase; color: #aaa; display: block; margin-bottom: 2px; }
+        .perm-header-txt { display: block; }
+
+        .legend-box { margin-top: 20px; display: flex; gap: 20px; justify-content: center; font-size: 0.85rem; color: #666; }
+        .legend-item i { margin-right: 5px; }

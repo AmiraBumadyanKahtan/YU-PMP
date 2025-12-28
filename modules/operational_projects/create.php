@@ -5,31 +5,53 @@ require_once "../../core/config.php";
 require_once "../../core/auth.php";
 require_once "project_functions.php";
 
-if (!Auth::can('create_project')) die("Access Denied");
+// 1. التحقق من صلاحية "إنشاء مشروع" العامة
+if (!Auth::can('proj_create')) {
+    include "../../layout/header.php";
+    echo '<div class="main-content"><div class="alert alert-danger m-4">Access Denied: You do not have permission to create projects.</div></div>';
+    include "../../layout/footer.php";
+    exit;
+}
 
 $db = Database::getInstance()->pdo();
 $nextCode = generateProjectCode();
 
 // --- منطق الصلاحيات وتحديد النطاق (Scope) ---
-$roleKey = $_SESSION['role_key'];
+$roleKey  = $_SESSION['role_key'] ?? '';
+$userId   = $_SESSION['user_id'];
 $myDeptId = $_SESSION['department_id'];
 
-// الأدوار التي ترى كل الأقسام
-$superRoles = ['super_admin', 'ceo', 'strategy_office'];
+// الأدوار العليا التي لها صلاحية رؤية واختيار جميع الأقسام
+$superRoles = ['super_admin', 'ceo', 'strategy_office', 'pmo_manager']; 
 $isSuperUser = in_array($roleKey, $superRoles);
 
-// 1. جلب الأقسام المتاحة
+// 2. جلب الأقسام المتاحة بناءً على الصلاحية
 if ($isSuperUser) {
-    $depts = $db->query("SELECT * FROM departments WHERE is_deleted=0 ORDER BY name")->fetchAll();
+    // السوبر يرى كل الأقسام النشطة
+    $stmt = $db->query("SELECT id, name FROM departments WHERE is_deleted=0 ORDER BY name ASC");
+    $depts = $stmt->fetchAll(PDO::FETCH_ASSOC);
 } else {
-    $depts = $db->query("SELECT * FROM departments WHERE id = $myDeptId AND is_deleted=0")->fetchAll();
+    // المستخدم العادي يرى قسمه فقط
+    $stmt = $db->prepare("SELECT id, name FROM departments WHERE id = ? AND is_deleted=0");
+    $stmt->execute([$myDeptId]);
+    $depts = $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
 
-// 2. جلب المدراء (مبدئياً للقسم الحالي أو الأول)
+// 3. تحديد القسم الافتراضي لجلب قائمة المدراء عند التحميل
+// إذا كان سوبر، نختار أول قسم في القائمة، وإلا نختار قسم المستخدم
 $initialDeptId = $isSuperUser ? ($depts[0]['id'] ?? 0) : $myDeptId;
-$users = $db->prepare("SELECT id, full_name_en FROM users WHERE department_id = ? AND is_active = 1 ORDER BY full_name_en");
-$users->execute([$initialDeptId]);
-$deptUsers = $users->fetchAll();
+
+// 4. جلب قائمة المستخدمين (المرشحين ليكونوا Project Manager) للقسم المحدد
+$usersStmt = $db->prepare("
+    SELECT id, full_name_en 
+    FROM users 
+    WHERE department_id = ? 
+    AND is_active = 1 
+    AND is_deleted = 0
+    ORDER BY full_name_en ASC
+");
+$usersStmt->execute([$initialDeptId]);
+$deptUsers = $usersStmt->fetchAll(PDO::FETCH_ASSOC);
 
 ?>
 <!DOCTYPE html>
@@ -45,9 +67,14 @@ $deptUsers = $users->fetchAll();
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     
     <style>
-        /* إضافة بسيطة لإخفاء قسم الميزانية */
+        /* الحفاظ على التنسيقات كما هي */
         #budget_section_content { transition: all 0.3s ease; }
         .hidden-section { display: none; }
+        .input-readonly { 
+            background-color: #f8f9fa; 
+            color: #6c757d; 
+            cursor: not-allowed;
+        }
     </style>
 
     <script>
@@ -55,7 +82,7 @@ $deptUsers = $users->fetchAll();
         function validateBudget() {
             var budgetRequired = document.getElementById('budget_required').value;
             
-            if (budgetRequired === 'no') return true; // لا داعي للتحقق
+            if (budgetRequired === 'no') return true; 
 
             var min = parseFloat(document.getElementById('budget_min').value) || 0;
             var max = parseFloat(document.getElementById('budget_max').value) || 0;
@@ -78,10 +105,8 @@ $deptUsers = $users->fetchAll();
             var content = document.getElementById('budget_section_content');
             if (val === 'yes') {
                 content.style.display = 'block';
-                // إعادة تفعيل الحقول المطلوبة (اختياري حسب المنطق)
             } else {
                 content.style.display = 'none';
-                // تصفير القيم عند الإخفاء
                 document.getElementById('budget_min').value = '';
                 document.getElementById('budget_max').value = '';
                 document.getElementById('approved_budget').value = '';
@@ -89,48 +114,44 @@ $deptUsers = $users->fetchAll();
         }
 
         // AJAX لجلب الموظفين عند تغيير القسم
-        // AJAX لجلب الموظفين عند تغيير القسم
-function fetchDeptUsers(deptId) {
-    var managerSelect = document.querySelector('select[name="manager_id"]');
-    managerSelect.innerHTML = '<option value="">Loading...</option>';
+        function fetchDeptUsers(deptId) {
+            var managerSelect = document.querySelector('select[name="manager_id"]');
+            managerSelect.innerHTML = '<option value="">Loading...</option>';
+            managerSelect.disabled = true;
 
-    // استخدم BASE_URL التي يطبعها PHP لضمان المسار الصحيح
-    // تأكد أنك داخل وسم <script> في ملف PHP
-    var apiUrl = '<?php echo BASE_URL; ?>api/get_users_by_dept.php?dept_id=' + deptId;
+            var apiUrl = '<?php echo BASE_URL; ?>api/get_users_by_dept.php?dept_id=' + deptId;
 
-    fetch(apiUrl)
-        .then(response => {
-            // التحقق من أن الاستجابة هي JSON وليست HTML خطأ
-            if (!response.ok) {
-                throw new Error('Network response was not ok');
-            }
-            return response.json();
-        })
-        .then(data => {
-            managerSelect.innerHTML = '<option value="">-- Select Manager --</option>';
-            
-            // التحقق من وجود خطأ في البيانات
-            if (data.error) {
-                console.error(data.error);
-                return;
-            }
+            fetch(apiUrl)
+                .then(response => {
+                    if (!response.ok) throw new Error('Network response was not ok');
+                    return response.json();
+                })
+                .then(data => {
+                    managerSelect.innerHTML = '<option value="">-- Select Manager --</option>';
+                    managerSelect.disabled = false;
+                    
+                    if (data.error) {
+                        console.error(data.error);
+                        return;
+                    }
 
-            if (data.length === 0) {
-                 managerSelect.innerHTML = '<option value="">No users found in this department</option>';
-            }
+                    if (data.length === 0) {
+                         managerSelect.innerHTML = '<option value="">No users found in this department</option>';
+                    }
 
-            data.forEach(user => {
-                var option = document.createElement('option');
-                option.value = user.id;
-                option.text = user.full_name_en;
-                managerSelect.add(option);
-            });
-        })
-        .catch(error => {
-            console.error('Error fetching users:', error);
-            managerSelect.innerHTML = '<option value="">Error loading users</option>';
-        });
-}
+                    data.forEach(user => {
+                        var option = document.createElement('option');
+                        option.value = user.id;
+                        option.text = user.full_name_en;
+                        managerSelect.add(option);
+                    });
+                })
+                .catch(error => {
+                    console.error('Error fetching users:', error);
+                    managerSelect.innerHTML = '<option value="">Error loading users</option>';
+                    managerSelect.disabled = false;
+                });
+        }
     </script>
 </head>
 <body>
@@ -187,16 +208,21 @@ function fetchDeptUsers(deptId) {
             <div class="form-grid">
                 <div class="form-group">
                     <label>Department <span class="req">*</span></label>
-                    <select name="department_id" class="form-select <?= !$isSuperUser ? 'input-readonly' : '' ?>" 
-                            <?= !$isSuperUser ? 'style="pointer-events:none;"' : 'onchange="fetchDeptUsers(this.value)"' ?>>
+                    <select name="department_id_display" class="form-select <?= !$isSuperUser ? 'input-readonly' : '' ?>" 
+                            <?= !$isSuperUser ? 'disabled' : 'onchange="fetchDeptUsers(this.value)"' ?>>
                         <?php foreach($depts as $d): ?>
                             <option value="<?= $d['id'] ?>" <?= (!$isSuperUser && $d['id'] == $myDeptId) ? 'selected' : '' ?>>
                                 <?= htmlspecialchars($d['name']) ?>
                             </option>
                         <?php endforeach; ?>
                     </select>
+                    
                     <?php if(!$isSuperUser): ?>
                         <input type="hidden" name="department_id" value="<?= $myDeptId ?>">
+                    <?php else: ?>
+                        <script>
+                            document.querySelector('select[name="department_id_display"]').setAttribute('name', 'department_id');
+                        </script>
                     <?php endif; ?>
                 </div>
 

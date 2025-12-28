@@ -1,17 +1,27 @@
-/* =========================================================
-   GLOBAL CONTENT WRAPPER
-========================================================= */
-
+/* --- Unified Theme Styles --- */
+        body { font-family: "Varela Round", sans-serif; background-color: #fcfcfc; margin: 0; }
 .page-wrapper {
-    padding: 2rem;
-    font-family: "Times New Roman", serif;
+    padding: 30px;
+    font-family: "Varela Round", sans-serif;
+  font-weight: 400;
+  font-style: normal;
 }
 
-/* =========================================================
-   PAGE TITLES
-========================================================= */
+/* Page Header */
+.page-header-flex {
+    font-family: "Varela Round", sans-serif;
+  font-weight: 400;
+  font-style: normal;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 18px;
+}
 
 .page-title {
+    font-family: "Varela Round", sans-serif;
+  font-weight: 400;
+  font-style: normal;
     font-size: 2rem;
     font-weight: 700;
     color: #ff8c00;
@@ -19,77 +29,50 @@
     display: flex;
     align-items: center;
     gap: 12px;
-}
-
-.form-card {
-        font-family: "Times New Roman", serif;
-        background: #fff;
-        padding: 2rem;
-        border-radius: 14px;
-        box-shadow: var(--shadow-md);
+}.page-title i { color: #ff8c00; }
+        
+        /* Form Card */
+        .form-card { 
+            background: #fff; padding: 40px; border-radius: 12px; 
+            box-shadow: 0 4px 20px rgba(0,0,0,0.04); border: 1px solid #f0f0f0; 
         }
 
-        .form-field {
-            margin-bottom: 1.3rem;
+        /* Inputs */
+        .form-group { margin-bottom: 25px; }
+        .form-label { display: block; margin-bottom: 8px; font-weight: 600; color: #2c3e50; font-size: 0.95rem; }
+        .form-control { 
+            width: 100%; padding: 12px 15px; border: 1px solid #e0e0e0; border-radius: 8px; 
+            box-sizing: border-box; font-family: inherit; font-size: 0.95rem; transition: all 0.2s;
         }
+        .form-control:focus { border-color: #ff8c00; outline: none; box-shadow: 0 0 0 3px rgba(255, 140, 0, 0.1); }
+        .form-hint { font-size: 0.85rem; color: #888; margin-top: 5px; display: block; }
 
-        label {
-            font-family: "Times New Roman", serif;
-            font-weight: bold;
-            color: #c86a12;
-            display: block;
-            margin-bottom: 6px;
+        /* Checkbox Grid */
+        .checkbox-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 12px; margin-top: 10px; }
+        .checkbox-card { 
+            background: #f9f9f9; padding: 10px 15px; border: 1px solid #eee; border-radius: 8px; 
+            cursor: pointer; display: flex; align-items: center; gap: 10px; transition: 0.2s;
         }
-        input[type="text"]{
-            width: 98%;
-        }
-        select{
-            width: 100%;
-        }
-        input[type="text"],
-        select {
-            font-family: "Times New Roman", serif;
-            padding: 12px;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            background: #fafafa;
-            font-size: 1rem;
-        }
+        .checkbox-card:hover { background: #fff; border-color: #ff8c00; }
+        .checkbox-card input { accent-color: #ff8c00; transform: scale(1.1); }
+        .checkbox-label { font-size: 0.9rem; color: #555; font-weight: 500; }
 
-        .form-actions {
-            font-family: "Times New Roman", serif;
-            margin-top: 1.5rem;
-            display: flex;
-            gap: 10px;
-            justify-content: space-between;
-            
+        /* Buttons */
+        .form-actions { display: flex; justify-content: space-between; gap: 15px; margin-top: 30px; padding-top: 20px; border-top: 1px dashed #eee; }
+        
+        .btn-primary { 
+             font-family: "Varela Round", sans-serif;
+            background: linear-gradient(135deg, #ff8c00, #e67e00); color: white; border: none; 
+            padding: 12px 30px; border-radius: 30px; font-weight: 600; cursor: pointer; 
+            transition: transform 0.2s, box-shadow 0.2s; display: flex; align-items: center; gap: 8px;
+            box-shadow: 0 4px 10px rgba(255, 140, 0, 0.2); font-size: 1rem;
         }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 6px 15px rgba(255, 140, 0, 0.3); }
 
-        .btn-primary {
-            font-family: "Times New Roman", serif;
-            background: var(--primary-orange);
-            color: white;
-            padding: 12px 20px;
-            border-radius: 8px;
-            text-decoration: none;
-            border: none;
-            font-weight: bold;
-            cursor: pointer;
+        .btn-secondary { 
+             font-family: "Varela Round", sans-serif;
+            background: #f1f2f6; color: #555; padding: 12px 25px; border-radius: 30px; 
+            text-decoration: none; font-weight: 600; transition: 0.2s; display: inline-flex; align-items: center; gap: 6px; font-size: 1rem;
         }
-        .btn-primary:hover{
-            color:white ;
-            background: black;
-        }
-
-        .btn-secondary {
-            font-family: "Times New Roman", serif;
-            background: #eee;
-            color: #333;
-            padding: 12px 20px;
-            border-radius: 8px;
-            text-decoration: none;
-        }
-        .btn-secondary:hover{
-            color:white;
-            background: var(--primary-orange);
-        }
+        .btn-secondary:hover { transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1); background: #e2e6ea; color: #ff8c00; }

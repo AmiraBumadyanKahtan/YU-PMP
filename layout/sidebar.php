@@ -66,9 +66,9 @@ function isActiveLink($url) {
                 ?>
 
                 <a href="<?php echo $fullUrl; ?>" class="sidebar-link <?php echo $activeClass; ?>">
-                    <div style="width: 20px; text-align: center;font-family: Varela Round, sans-serif; font-weight: 400; font-style: normal;">
-                        <i class="<?php echo $item["icon"]; ?>"></i>
-                    </div>
+                    
+                        <i class="SB-icon <?php echo $item["icon"] ; ?>"></i>
+                
                     <span><?php echo $item["title"]; ?></span>
                 </a>
 

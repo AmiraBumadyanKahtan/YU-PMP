@@ -4,6 +4,10 @@
 require_once "../../core/config.php";
 require_once "../../core/auth.php";
 require_once "../../modules/todos/todo_functions.php"; 
+// تأكد من وجود notification_helper هنا أيضاً إذا لم يكن مضمناً في todo_functions
+if (file_exists(__DIR__ . '/../../modules/operational_projects/notification_helper.php')) {
+    require_once __DIR__ . '/../../modules/operational_projects/notification_helper.php';
+}
 
 if (!Auth::check()) die("Access Denied");
 
@@ -53,34 +57,65 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $error = "Please select a user to assign."; 
             } else {
                 $db->prepare("UPDATE collaborations SET status_id = 2, assigned_user_id = ?, reviewed_by = ?, reviewed_at = NOW(), last_comment = ? WHERE id = ?")
-                   ->execute([$assigned_user_id, $userId, $comments, $collab_id]);
+                    ->execute([$assigned_user_id, $userId, $comments, $collab_id]);
                 
                 $pName = $db->query("SELECT name FROM operational_projects WHERE id={$verify['parent_id']}")->fetchColumn();
                 
-                // إشعار لمدير المشروع
-                addSystemTodo($verify['requested_by'], "Collab Approved: $pName", "Your resource request has been approved.", "project", $verify['parent_id']);
-                
-                // إشعار للموظف المعين
-                addSystemTodo($assigned_user_id, "New Assignment: $pName", "You have been assigned to collaborate on this project.", "project", $verify['parent_id']);
+                // [MODIFIED] إشعار لمدير المشروع (إيميل + تودو)
+                if (function_exists('sendProjectNotification')) {
+                    sendProjectNotification(
+                        $verify['requested_by'], 
+                        "Collab Approved: $pName", 
+                        "Your resource request has been approved. User assigned.", 
+                        "project_view", 
+                        $verify['parent_id']
+                    );
+                    
+                    // [MODIFIED] إشعار للموظف المعين
+                    sendProjectNotification(
+                        $assigned_user_id, 
+                        "New Assignment: $pName", 
+                        "You have been assigned to collaborate on project: $pName.", 
+                        "project_view", 
+                        $verify['parent_id']
+                    );
+                } else {
+                    // Fallback
+                    addSystemTodo($verify['requested_by'], "Collab Approved: $pName", "Your resource request has been approved.", "project", $verify['parent_id']);
+                    addSystemTodo($assigned_user_id, "New Assignment: $pName", "You have been assigned to collaborate on this project.", "project", $verify['parent_id']);
+                }
 
                 $success = "Request approved and user assigned.";
             }
         } elseif ($action == 'reject') {
             $db->prepare("UPDATE collaborations SET status_id = 3, reviewed_by = ?, reviewed_at = NOW(), last_comment = ? WHERE id = ?")
-               ->execute([$userId, $comments, $collab_id]);
-               
+                ->execute([$userId, $comments, $collab_id]);
+                
              $pName = $db->query("SELECT name FROM operational_projects WHERE id={$verify['parent_id']}")->fetchColumn();
-             addSystemTodo($verify['requested_by'], "Collab Rejected: $pName", "Your resource request was rejected.", "project", $verify['parent_id']);
+             
+             // [MODIFIED] إشعار الرفض لمدير المشروع
+             if (function_exists('sendProjectNotification')) {
+                 sendProjectNotification(
+                     $verify['requested_by'], 
+                     "Collab Rejected: $pName", 
+                     "Your resource request was rejected.\nComment: $comments", 
+                     "project_view", 
+                     $verify['parent_id']
+                 );
+             } else {
+                 addSystemTodo($verify['requested_by'], "Collab Rejected: $pName", "Your resource request was rejected.", "project", $verify['parent_id']);
+             }
 
             $success = "Request rejected.";
         }
         
-        // إغلاق التنبيه
-        $db->prepare("UPDATE user_todos SET is_completed = 1 WHERE related_entity_id = ? AND related_entity_type = 'collaboration' AND user_id = ?")->execute([$collab_id, $userId]);
+        // إغلاق التنبيه الخاص بمدير القسم (لأنه اتخذ القرار)
+        // ملاحظة: التودو القديم كان نوعه 'collaboration'
+        $db->prepare("UPDATE user_todos SET is_completed = 1 WHERE related_entity_id = ? AND related_entity_type = 'collaboration_review' AND user_id = ?")->execute([$collab_id, $userId]);
     }
 }
 
-// 3. جلب الطلبات الواردة
+// 3. جلب الطلبات الواردة (كما هو)
 $sqlRequests = "
     SELECT c.*, p.name as project_name, u.full_name_en as requester_name, d.name as dept_name
     FROM collaborations c
@@ -98,7 +133,7 @@ if (!$isSuperAdmin) {
 $sqlRequests .= " ORDER BY c.created_at DESC";
 $requests = $db->query($sqlRequests)->fetchAll();
 
-// 4. جلب الموظفين
+// 4. جلب الموظفين (كما هو)
 $sqlStaff = "SELECT department_id, id, full_name_en FROM users WHERE is_active = 1";
 if (!$isSuperAdmin) {
     $deptIdsStr = implode(',', $myDepts);
@@ -118,8 +153,11 @@ $allStaff = $db->query($sqlStaff)->fetchAll(PDO::FETCH_GROUP);
     <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <link href="https://fonts.googleapis.com/css2?family=Varela+Round&display=swap" rel="stylesheet">
-    
     <style>
+        /* ... Same Styles ... */
+        body { font-family: "Varela Round", sans-serif; background-color: #fcfcfc; margin: 0; }
+        .page-wrapper { padding: 2rem; max-width: 1100px; margin: 0 auto; }
+        /* ... rest of styles ... */
         /* --- Unified Theme Styles --- */
         body { font-family: "Varela Round", sans-serif; background-color: #fcfcfc; margin: 0; }
         .page-wrapper { padding: 2rem; max-width: 1100px; margin: 0 auto; }

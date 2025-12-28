@@ -1,8 +1,11 @@
 <?php
-// modules/operational_projects/updates_reminder.php
+// modules/operational_projects/php/updates_reminder_BE.php
+
 require_once "../../core/config.php";
 require_once "../../core/auth.php";
-require_once "project_functions.php";
+require_once "project_functions.php"; 
+// نضمن ملف التودو لإرسال التنبيهات الداخلية فقط
+require_once __DIR__ . '/../../todos/todo_functions.php';
 
 // 1. التحقق من تسجيل الدخول
 if (!Auth::check()) die("Access Denied");
@@ -12,65 +15,127 @@ $project = getProjectById($id);
 
 // 2. التحقق من وجود المشروع
 if (!$project) {
-    include "../../layout/header.php";
-    echo "<div class='main-content'><div class='page-wrapper'><div class='alert alert-danger'>Project not found.</div></div></div>";
-    exit;
+    $projectExists = false;
+} else {
+    $projectExists = true;
 }
 
-// 3. التحقق من صلاحية عرض الصفحة (View Permission)
-// هذه الدالة تتحقق تلقائياً من: السوبر أدمن، المدير، رئيس القسم، أو الصلاحيات الممنوحة
-if (!userCanInProject($id, 'view_project_updates')) {
-    include "../../layout/header.php";
-    echo "<div class='main-content'><div class='page-wrapper'>";
-    
-    // نستدعي الهيدر حتى يرى المستخدم تفاصيل المشروع والتابز (المقفلة)
-    include "project_header_inc.php"; 
-    
-    echo "<div class='alert alert-danger' style='margin-top:20px; padding: 15px; background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; border-radius: 8px;'>";
-    echo "<i class='fa-solid fa-lock'></i> <strong>Access Denied:</strong> You do not have permission to view updates for this project.";
-    echo "</div>";
-    
-    echo "</div></div>";
-    exit;
-}
+// ============================================================
+// 3. منطق حالة المشروع (Locked Status Logic)
+// ============================================================
+// الحالات المقفلة: 2 (قيد المراجعة)، 4 (مرفوض)، 7 (معلق)، 8 (مكتمل)
+$lockedStatuses = [1, 2, 4, 7, 8]; 
+$isLockedStatus = $projectExists && in_array($project['status_id'], $lockedStatuses);
 
-// 4. التحقق من صلاحية الإرسال (Submit Permission)
-$canSubmit = userCanInProject($id, 'send_progress_update');
+// ============================================================
+// 4. التحقق من الصلاحيات (Permissions)
+// ============================================================
+// العرض: يعتمد على صلاحية لوحة التحكم العامة
+$canView = $projectExists && userCanInProject($id, 'proj_view_dashboard');
 
-// 5. معالجة الإرسال
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_update']) && $canSubmit) {
-    // نأخذ النسبة الحالية من النظام لضمان الدقة
-    $progress = $project['progress_percentage']; 
-    $desc = $_POST['description'];
+// الإرسال: يعتمد على الصلاحية الجديدة 'proj_send_update' + المشروع غير مقفل
+// (مدير المشروع والسوبر أدمن يملكون هذه الصلاحية تلقائياً عبر userCanInProject)
+$canSubmit = $projectExists && userCanInProject($id, 'proj_send_update') && !$isLockedStatus;
+
+// ============================================================
+// 5. معالجة الإرسال (POST Handling)
+// ============================================================
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_update'])) {
     
-    $res = submitProgressUpdate($id, $progress, $desc);
-    if ($res['ok']) {
-        header("Location: updates_reminder.php?id=$id&msg=sent");
-        exit;
+    if ($isLockedStatus) {
+        die("Action Denied: Project is locked.");
+    }
+
+    if ($canSubmit) {
+        $progress = $project['progress_percentage']; 
+        $desc = $_POST['description'];
+        
+        $res = submitProgressUpdate($id, $progress, $desc);
+        if ($res['ok']) {
+            header("Location: updates_reminder.php?id=$id&msg=sent");
+            exit;
+        }
+    } else {
+        die("Access Denied: You do not have permission to submit updates.");
     }
 }
 
-// 6. جلب السجل
-$db = Database::getInstance()->pdo();
-$history = $db->query("SELECT * FROM project_updates WHERE project_id = $id ORDER BY created_at DESC")->fetchAll();
+// ============================================================
+// 6. الدوال المساعدة (Functions)
+// ============================================================
 
-// متغيرات للهيدر الموحد (لضمان عمله في حال لم يتم تعريفها داخله)
-// (project_header_inc.php عادةً يقوم بحسابها، لكن للاحتياط)
-if (!isset($h_progPercent)) {
-    $h_tasksTotal = $db->query("SELECT COUNT(*) FROM project_tasks WHERE project_id=$id AND is_deleted=0")->fetchColumn();
-    $h_tasksDone = $db->query("SELECT COUNT(*) FROM project_tasks WHERE project_id=$id AND status_id=3 AND is_deleted=0")->fetchColumn();
-    $h_risksCount = $db->query("SELECT COUNT(*) FROM risk_assessments WHERE parent_type='project' AND parent_id=$id")->fetchColumn();
-    $h_daysLeft = 0;
-    if ($project['end_date']) {
-        $h_end = new DateTime($project['end_date']);
-        $h_now = new DateTime();
-        if ($h_end > $h_now) { $h_daysLeft = $h_now->diff($h_end)->days; }
-    }
-    $h_spentVal = $project['spent_budget'] ?? 0;
-    $h_budgetVal = $project['approved_budget'] ?? 0;
-    if($h_budgetVal == 0) $h_budgetVal = $project['budget_max'];
-    $h_moneyPercent = ($h_budgetVal > 0) ? round(($h_spentVal / $h_budgetVal) * 100) : 0;
-    $h_isOverBudget = ($h_spentVal > $h_budgetVal);
-    $h_progPercent = $project['progress_percentage'] ?? 0;
+/**
+ * جلب سجل التحديثات
+ */
+function getProjectUpdatesHistory($project_id) {
+    $db = Database::getInstance()->pdo();
+    return $db->query("SELECT * FROM project_updates WHERE project_id = $project_id ORDER BY created_at DESC")->fetchAll();
 }
+
+/**
+ * إرسال تحديث جديد (من المدير إلى CEO)
+ */
+function submitProgressUpdate($project_id, $progress, $description) {
+    $db = Database::getInstance()->pdo();
+    
+    // 1. حفظ التحديث
+    $stmt = $db->prepare("
+        INSERT INTO project_updates (project_id, user_id, progress_percent, description, status, created_at)
+        VALUES (?, ?, ?, ?, 'pending', NOW())
+    ");
+    
+    if ($stmt->execute([$project_id, $_SESSION['user_id'], $progress, $description])) {
+        $updateId = $db->lastInsertId();
+        
+        // 2. تحديث نسبة المشروع (اختياري، لأنها تُحسب أصلاً من المهام، لكن للتأكيد)
+        $db->prepare("UPDATE operational_projects SET progress_percentage = ? WHERE id = ?")
+            ->execute([$progress, $project_id]);
+            
+        // 3. إغلاق تذكير المدير (لأنه قام بالمهمة)
+        // هذا يغلق التنبيه الذي يطلب من المدير إرسال التحديث
+        $db->prepare("UPDATE user_todos SET is_completed = 1 WHERE related_entity_type = 'project_update' AND related_entity_id = ? AND user_id = ?")
+            ->execute([$project_id, $_SESSION['user_id']]);
+
+        // 4. [تعديل] إرسال Todo فقط للرئيس التنفيذي (CEO) بدون إيميل
+        $ceoId = $db->query("SELECT id FROM users WHERE primary_role_id = (SELECT id FROM roles WHERE role_key = 'ceo')")->fetchColumn();
+        
+        if ($ceoId) {
+            $pName = $db->query("SELECT name FROM operational_projects WHERE id = $project_id")->fetchColumn();
+            
+            // استخدام addSystemTodo مباشرة (داخلي فقط)
+            addSystemTodo(
+                $ceoId, 
+                "Project Update: " . substr($pName, 0, 30), 
+                "New progress update ($progress%) submitted for review.\n\nSummary: " . substr($description, 0, 50) . "...", 
+                "ceo_review", // سيفتح صفحة مراجعة التحديثات (أو نفس الصفحة)
+                $updateId
+            );
+        }
+
+        return ['ok' => true];
+    }
+    return ['ok' => false, 'error' => 'Failed to submit update'];
+}
+
+// ============================================================
+// 7. جلب البيانات ومنطق القراءة التلقائي
+// ============================================================
+if ($projectExists) {
+    
+    // إغلاق الإشعار تلقائياً إذا دخل المدير المعني (CEO) وشاهد التحديثات
+    if (in_array($_SESSION['role_key'], ['ceo', 'super_admin'])) {
+        $db = Database::getInstance()->pdo();
+        // جلب آخر تحديث "معلق" لهذا المشروع
+        $pendingUpdateId = $db->query("SELECT id FROM project_updates WHERE project_id = $id AND status = 'pending' ORDER BY created_at DESC LIMIT 1")->fetchColumn();
+        
+        if ($pendingUpdateId) {
+            // تحديث حالته إلى "تمت المشاهدة" وإغلاق التنبيه عند الـ CEO
+            markUpdateAsViewed($pendingUpdateId);
+        }
+    }
+
+    $history = getProjectUpdatesHistory($id);
+}
+
+
 ?>

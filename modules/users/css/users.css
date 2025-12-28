@@ -12,6 +12,23 @@
   font-weight: 400;
   font-style: normal;
 }
+/* Page Header */
+.page-header-flex {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 18px;
+}
+
+.page-title {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #ff8c00;
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
 
 /* Wrapper */
 .user-table-wrapper {
@@ -99,86 +116,48 @@
 }
 
 /* Buttons */
-.action-btn {
-    padding: 6px 12px;
-    border-radius: 8px;
-    text-decoration: none;
+.action-btn { 
+    display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; 
+    border-radius: 6px; text-decoration: none; margin-right: 5px; transition: 0.2s; border: none; cursor: pointer; background: transparent;
+}
+.actions a {
+    font-family: "Varela Round", sans-serif;
     font-size: 14px;
-    font-weight: 600;
-    transition: 0.2s;
 }
 
 .btn-view { font-family: "Varela Round", sans-serif;
-  font-weight: 400;
-  font-style: normal;background: #fff4e0; color: #ff8c00; }
-        .btn-view:hover{
-            background: #ff8c00;
-            color: #fff4e0;
-        }
-        .btn-edit { font-family: "Varela Round", sans-serif;
-  font-weight: 400;
-  font-style: normal;background: #def5e7; color: #1b7f3a; }
-        .btn-edit:hover{
-            color:#def5e7;
-            background: #1b7f3a;
-        }
-        .btn-delete {font-family: "Varela Round", sans-serif;
-  font-weight: 400;
-  font-style: normal; background: #ffe4e4; color: #ad1c1c; }
-        .btn-delete:hover{
-            color: #ffe4e4;
-            background: #ad1c1c;
-        }
-
-
-/* Page Header */
-.page-header-flex {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 18px;
+    font-weight: 400;
+    font-style: normal;background: #fff4e0; color: #ff8c00; }
+.btn-view:hover{
+    background: #ff8c00;
+    color: #fff4e0;
+}
+.btn-edit { font-family: "Varela Round", sans-serif;
+    font-weight: 400;
+    font-style: normal;background: #def5e7; color: #1b7f3a; }
+.btn-edit:hover{
+    color:#def5e7;
+    background: #1b7f3a;
+}
+.btn-delete {font-family: "Varela Round", sans-serif;
+    font-weight: 400;
+    font-style: normal; background: #ffe4e4; color: #ad1c1c; }
+.btn-delete:hover{
+    color: #ffe4e4;
+    background: #ad1c1c;
 }
 
-.page-title {
-    font-size: 2rem;
-    font-weight: 700;
-    color: #ff8c00;
-    margin-bottom: 24px;
-    display: flex;
-    align-items: center;
-    gap: 12px;
+/* Buttons */
+.btn-primary { 
+    font-family: "Varela Round", sans-serif;
+    background: linear-gradient(135deg, #ff8c00, #e67e00); color: white; border: none; 
+    padding: 10px 20px; border-radius: 30px; font-weight: 600; text-decoration: none; 
+    display: inline-flex; align-items: center; gap: 8px; transition: transform 0.2s, box-shadow 0.2s;
+    cursor: pointer; box-shadow: 0 4px 10px rgba(255, 140, 0, 0.2);
 }
-.btn-primary {
-            font-family: "Varela Round", sans-serif;
-  font-weight: 400;
-  font-style: normal;
-            background: var(--primary-orange);
-            color: white;
-            padding: 10px 18px;
-            text-decoration: none;
-            border-radius: 8px;
-            font-weight: bold;
-            border: none;
-            padding: 10px 18px;
-            font-size: 14px;
-        }
-        .btn-primary:hover{
-            color:white;
-            background: black;
-        }
-        .actions a {
-            font-family: "Varela Round", sans-serif;
-  font-weight: 400;
-  font-style: normal;
-            padding: 6px 10px;
-            border-radius: 8px;
-            font-size: 14px;
-            text-decoration: none;
-            margin-right: 5px;
-            transition: .2s;
-        }
+.btn-primary:hover { transform: translateY(-2px); box-shadow: 0 6px 15px rgba(255, 140, 0, 0.3); }
 
-        /* =========================================================
+/* =========================================================
    USERS FILTER BAR
 ========================================================= */
 
@@ -225,25 +204,12 @@
 }
 
 /* Reset Button */
-.btn-reset {
-    background: #ffe5e5;
-    color: #b00;
-    font-family: "Varela Round", sans-serif;
-  font-weight: 400;
-  font-style: normal;
-    border: none;
-    border-radius: 8px;
-    padding: 10px 14px;
-    cursor: pointer;
-    font-weight: bold;
-    transition: 0.2s;
-    text-decoration: none;
-}
-
-.btn-reset:hover {
-    background: #ffcccc;
-}
-
+.btn-reset { 
+            background: #ffe5e5;color: #b00; padding: 10px 20px; border-radius: 30px; 
+            text-decoration: none; font-weight: 600; transition: 0.2s; display: inline-flex; align-items: center;
+            box-shadow: 0 6px 15px rgba(187, 0, 0, 0.332);
+        }
+        .btn-reset:hover { background: #ffcccc;transform: translateY(-2px); box-shadow: 0 6px 15px rgba(187, 0, 0, 0.332); }
 /* =========================================================
    MOBILE RESPONSIVE
 ========================================================= */

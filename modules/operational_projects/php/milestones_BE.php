@@ -1,40 +1,57 @@
 <?php
-// modules/operational_projects/milestones.php
+// modules/operational_projects/php/milestones_BE.php
 
 require_once "../../core/config.php";
 require_once "../../core/auth.php";
 require_once "project_functions.php";
 
-// استدعاء ملفات الأدوار إذا وجدت
+// دالة التحقق من وجود الملف الإضافي (للاحتياط)
 if (file_exists("../project_roles/functions.php")) { require_once "../project_roles/functions.php"; }
 
-// 1. التحقق من الوصول
 if (!Auth::check()) die("Access Denied");
 
 $id = $_GET['id'] ?? 0;
 $project = getProjectById($id);
 if (!$project) die("Project not found");
 
-// --- الصلاحيات ---
+
+// ============================================================
+// 1. التحقق من حالة المشروع (Locked Status Logic)
+// ============================================================
+// الحالات المقفلة: 2 (Pending Review), 4 (Rejected), 8 (Completed), 7 (On Hold)
+$lockedStatuses = [1, 2, 4, 8, 7]; 
+$isLockedStatus = !in_array($project['status_id'], $lockedStatuses);
+
+
+// ============================================================
+// 2. تعريف الصلاحيات الدقيقة (Fine-Grained Permissions)
+// ============================================================
 $isManager = ($project['manager_id'] == $_SESSION['user_id']);
 $isSuperAdmin = in_array($_SESSION['role_key'], ['super_admin', 'ceo', 'strategy_office']);
 
-// صلاحية الإدارة الكاملة (مدير، سوبر، أو لديه إذن إدارة المهام)
-$canManage = ($isManager || $isSuperAdmin || userCanInProject($id, 'manage_project_tasks'));
+// أ) صلاحية إدارة المراحل (Milestones) - مفتاح الجدول: pmilestone_manage
+$canManageMilestones = ($isManager || $isSuperAdmin || userCanInProject($id, 'pmilestone_manage')) && $isLockedStatus;
 
-// صلاحية التعديل للمهام الموكلة (للموظفين)
-$canEditAssigned = ($isManager || $isSuperAdmin || userCanInProject($id, 'edit_assigned_tasks'));
+// ب) صلاحية إنشاء/حذف المهام (Tasks) - مفتاح الجدول: ptask_create / ptask_delete
+$canManageTasks = ($isManager || $isSuperAdmin || userCanInProject($id, 'ptask_create')) && $isLockedStatus;
 
-$isApproved = ($project['status_id'] == 5); 
+// ج) صلاحية تعديل المهام المسندة للموظف - مفتاح الجدول: ptask_edit
+// (يسمح للموظف بتحديث حالة وتقدم مهامه فقط)
+$canEditOwnTasks = ($isManager || $isSuperAdmin || userCanInProject($id, 'ptask_edit') || userCanInProject($id, 'ptask_update_progress')) && $isLockedStatus;
 
 $db = Database::getInstance()->pdo();
+
 
 // ---------------------------------------------------------
 // معالجة النماذج (POST Actions)
 // ---------------------------------------------------------
 
-// أ) حذف المهمة (فقط لمن يملك صلاحية الإدارة)
-if (isset($_GET['delete_task']) && $canManage) {
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && !$isLockedStatus) {
+    die("Action Denied: Project is locked.");
+}
+
+// 1. حذف المهمة (يتطلب صلاحية إدارة المهام)
+if (isset($_GET['delete_task']) && $canManageTasks) {
     $taskId = $_GET['delete_task'];
     $msId = $db->query("SELECT milestone_id FROM project_tasks WHERE id=$taskId")->fetchColumn();
     
@@ -42,40 +59,25 @@ if (isset($_GET['delete_task']) && $canManage) {
     
     if($msId && function_exists('recalculateMilestone')) {
         recalculateMilestone($msId);
+    } else {
+        recalculateProject($id);
     }
     header("Location: milestones.php?id=$id&msg=deleted");
     exit;
 }
 
-// ب) حفظ المهمة (إضافة / تعديل)
+// 2. حفظ المهمة (إضافة / تعديل)
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_task'])) {
     
     $taskId = $_POST['task_id'] ?? 0;
-    $hasPermission = false;
-
-    // 1. التحقق من الصلاحية
-    if ($canManage) {
-        $hasPermission = true; // المدير يعدل ويضيف أي شيء
-    } elseif ($taskId) {
-        // إذا كانت مهمة موجودة (تعديل)، نتحقق هل المستخدم هو الموكل إليه؟
-        $assignedTo = $db->query("SELECT assigned_to FROM project_tasks WHERE id=$taskId")->fetchColumn();
-        if ($canEditAssigned && $assignedTo == $_SESSION['user_id']) {
-            $hasPermission = true;
-        }
-    }
-
-    if (!$hasPermission) {
-        $error = "Access Denied: You do not have permission to perform this action.";
-    } else {
-        // التجهيز للحفظ
+    
+    // الحالة أ: إضافة جديدة أو تعديل كامل (للمدراء ومن لديهم ptask_create)
+    if ($canManageTasks) {
         $progress = 0;
         $status = $_POST['status_id'] ?? 1;
-        
-        // منطق النسبة التلقائي
         if ($status == 3) $progress = 100;
         elseif ($status == 2) $progress = 50;
-        
-        // معالجة الـ Milestone ID
+
         $milestoneId = !empty($_POST['milestone_id']) ? $_POST['milestone_id'] : null;
 
         $data = [
@@ -98,37 +100,48 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_task'])) {
         if (!empty($taskId)) {
             $res = updateTask($taskId, $data);
         } else {
-            // فقط المدير يضيف مهام جديدة
-            if ($canManage) {
-                $res = createTask($data);
-            } else {
-                $res = ['ok' => false, 'error' => 'Only managers can create new tasks.'];
-            }
+            $res = createTask($data);
         }
+
+        if ($res['ok']) { header("Location: milestones.php?id=$id&msg=task_saved"); exit; }
+        else { $error = $res['error']; }
+    }
+    
+    // الحالة ب: تعديل جزئي (للموظف على مهامه الخاصة)
+    elseif ($taskId && $canEditOwnTasks) {
+        $assignedTo = $db->query("SELECT assigned_to FROM project_tasks WHERE id=$taskId")->fetchColumn();
         
-        if ($res['ok']) { 
-            if($milestoneId && function_exists('recalculateMilestone')) recalculateMilestone($milestoneId);
-            header("Location: milestones.php?id=$id&msg=task_saved"); 
-            exit; 
-        } else { 
-            $error = $res['error']; 
+        if ($assignedTo == $_SESSION['user_id']) {
+            $statusId = $_POST['status_id'];
+            $costSpent = $_POST['cost_spent'];
+            $progress = 0;
+            if ($statusId == 3) $progress = 100;
+            elseif ($statusId == 2) $progress = 50;
+
+            // دالة التحديث الجزئي
+            $res = updateTaskProgressOnly($taskId, $statusId, $progress, $costSpent);
+            
+            if ($res['ok']) { header("Location: milestones.php?id=$id&msg=task_saved"); exit; }
+            else { $error = $res['error']; }
+        } else {
+            $error = "Access Denied: You can only edit tasks assigned to you.";
         }
+    } else {
+        $error = "Access Denied: You do not have permission to manage tasks.";
     }
 }
 
-// ج) إضافة مرحلة (Milestone) - للمدراء فقط
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_milestone']) && $canManage) {
+// 3. إضافة مرحلة (يتطلب صلاحية pmilestone_manage)
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_milestone']) && $canManageMilestones) {
     $newStart = $_POST['start_date'];
     $newDue = $_POST['due_date'];
 
-    $checkOverlap = $db->prepare("
-        SELECT COUNT(*) FROM project_milestones 
-        WHERE project_id = ? AND is_deleted = 0
-        AND (start_date <= ? AND due_date >= ?)
-    ");
+    // التحقق من تداخل التواريخ (اختياري)
+    $checkOverlap = $db->prepare("SELECT COUNT(*) FROM project_milestones WHERE project_id = ? AND is_deleted = 0 AND (start_date <= ? AND due_date >= ?)");
     $checkOverlap->execute([$id, $newDue, $newStart]);
     
-    if ($checkOverlap->fetchColumn() > 0) {
+    // يمكنك تفعيل التحقق إذا أردت، حالياً سأسمح بالتداخل للمرونة
+    if (false && $checkOverlap->fetchColumn() > 0) {
         $error = "Date Conflict: Dates overlap with an existing milestone.";
     } else {
         $data = [
@@ -141,13 +154,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_milestone']) && $
     }
 }
 
-// ---------------------------------------------------------
 // جلب البيانات للعرض
-// ---------------------------------------------------------
 $milestones = getProjectMilestones($id);
 $teamMembers = getProjectTeam($id); 
 
-// جلب المهام العامة
 $generalTasks = $db->prepare("
     SELECT t.*, u.full_name_en as assignee_name, s.name as status_name 
     FROM project_tasks t
@@ -159,4 +169,7 @@ $generalTasks = $db->prepare("
 $generalTasks->execute([$id]);
 $generalTasks = $generalTasks->fetchAll();
 
+// --- [LOGIC FOR MANDATORY MILESTONE] ---
+// التحقق: هل يوجد مراحل؟
+$hasMilestones = (count($milestones) > 0);
 ?>

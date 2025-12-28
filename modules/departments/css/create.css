@@ -63,7 +63,7 @@
         .btn-primary { 
             font-family: "Varela Round", sans-serif;
             background: linear-gradient(135deg, #ff8c00, #e67e00); color: white; border: none; 
-            padding: 12px 30px; border-radius: 8px; font-weight: 600; cursor: pointer; 
+            padding: 12px 30px; border-radius:30px; font-weight: 600; cursor: pointer; 
             transition: transform 0.2s, box-shadow 0.2s; display: flex; align-items: center; gap: 8px;
             box-shadow: 0 4px 10px rgba(255, 140, 0, 0.2); font-size: 1rem;
         }
@@ -71,7 +71,8 @@
 
         .btn-secondary { 
             font-family: "Varela Round", sans-serif;
-            background: #f1f2f6; color: #555; padding: 12px 25px; border-radius: 8px; 
+            background: #f1f2f6; color: #555; padding: 12px 25px; border-radius: 30px; 
             text-decoration: none; font-weight: 600; transition: 0.2s; display: inline-flex; align-items: center; gap: 6px; font-size: 1rem;
         }
-        .btn-secondary:hover { background: #e2e6ea; color: #ff8c00; }
+        .btn-secondary:hover { transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1); background: #e2e6ea; color: #ff8c00; }

@@ -10,47 +10,42 @@ if (!Auth::check()) die("Access Denied");
 $id = $_GET['id'] ?? 0;
 $db = Database::getInstance()->pdo();
 
-// 1. جلب بيانات الركيزة
+// 1. Get Data
 $pillar = getPillarById($id);
 if (!$pillar) die("Pillar not found");
 
-// 2. التحقق من الحالة والصلاحيات
-$isApproved   = ($pillar['status_id'] == 11); // 11 = Approved
+// 2. Checks
+$isApproved   = ($pillar['status_id'] == 11); 
 $isSuperAdmin = ($_SESSION['role_key'] == 'super_admin');
 $isStrategy   = ($_SESSION['role_key'] == 'strategy_office');
 $isLead       = ($pillar['lead_user_id'] == $_SESSION['user_id']);
 $isDraft      = ($pillar['status_id'] == 12 || $pillar['status_id'] == 6); 
 
-// السماح بالدخول: للسوبر أدمن، الاستراتيجية، أو القائد (فقط إذا كانت مسودة)
 if (!$isSuperAdmin && !$isStrategy && !($isLead && $isDraft)) {
     die("Access Denied: You do not have permission to edit this pillar.");
 }
 
-// 3. جلب القوائم
+// 3. Dropdowns
 $users = $db->query("SELECT id, full_name_en FROM users WHERE is_active=1 ORDER BY full_name_en")->fetchAll();
 
-// 4. معالجة الحفظ
+// 4. Save
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     
-    // البيانات التي يمكن تعديلها دائماً
     $description  = $_POST['description'];
     $lead_user_id = $_POST['lead_user_id'];
     $color        = $_POST['color'];
     $icon         = $_POST['icon'];
 
-    // البيانات المقيدة (نأخذها من القاعدة إذا كانت الحالة "Approved" ولم يكن المستخدم سوبر أدمن)
-    // (ملاحظة: السوبر أدمن عادة يُستثنى، لكن بناءً على طلبك "مش مسموح تتغير"، سنطبق القيد على الجميع لضمان البيانات)
     if ($isApproved) {
-        $name       = $pillar['name'];       // إبقاء الاسم القديم
-        $start_date = $pillar['start_date']; // إبقاء التاريخ القديم
-        $end_date   = $pillar['end_date'];   // إبقاء التاريخ القديم
+        $name       = $pillar['name'];
+        $start_date = $pillar['start_date'];
+        $end_date   = $pillar['end_date'];
     } else {
         $name       = $_POST['name'];
         $start_date = $_POST['start_date'];
         $end_date   = $_POST['end_date'];
     }
 
-    // الرقم ثابت دائماً (نأخذه من القاعدة الأصلية)
     $pillar_number = $pillar['pillar_number']; 
 
     $data = [
@@ -73,13 +68,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-// --- إعداد خصائص الحقول (Readonly Logic) ---
-// 1. حقول ثابتة دائماً (رقم الركيزة + الحالة)
-$fixedAttr = 'readonly style="background-color: #eee; cursor: not-allowed; color: #777;"';
-
-// 2. حقول تقفل بعد الموافقة (الاسم + التواريخ)
-// نضيف pointer-events: none للتواريخ لمنع ظهور الـ Calendar Popup
-$lockedAttr = $isApproved ? 'readonly style="background-color: #f9f9f9; cursor: not-allowed; pointer-events: none;"' : '';
+// Readonly Logic
+$fixedAttr = 'readonly style="background-color: #f0f2f5; cursor: not-allowed; color: #7f8c8d;"';
+$lockedAttr = $isApproved ? 'readonly style="background-color: #f0f2f5; cursor: not-allowed; pointer-events: none;"' : '';
 $lockedClass = $isApproved ? 'locked-field' : '';
 
 ?>
@@ -89,46 +80,81 @@ $lockedClass = $isApproved ? 'locked-field' : '';
     <meta charset="UTF-8">
     <title>Edit: <?= htmlspecialchars($pillar['name']) ?></title>
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/layout.css">
-    <link rel="icon" type="image/png" href="../../assets/images/favicon-32x32.png">
+    <link rel="icon" type="image/png" href="<?php echo BASE_URL; ?>assets/images/favicon-32x32.png">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Varela+Round&display=swap" rel="stylesheet">
     <style>
-        body { background-color: #fdfbf7; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        /* --- Premium Theme Styles --- */
+        body { font-family: "Varela Round", sans-serif; background-color: #fcfcfc; margin: 0; color: #444; }
+        .page-wrapper { padding: 2rem; max-width: 1000px; margin: 0 auto; }
         
-        .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; padding: 0 10px; }
-        .page-title { font-size: 1.8rem; color: #d35400; font-weight: bold; margin: 0; }
-
-        .form-card { background: #fff; padding: 40px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.04); max-width: 900px; margin: 0 auto; border-top: 5px solid <?= $pillar['color'] ?>; }
+        .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
+        .page-title { font-size: 2rem; font-weight: 700; color: #ff8c00; margin: 0; display: flex; align-items: center; gap: 12px; }
+        
+        /* Form Card */
+        .form-card { 
+            background: #fff; padding: 40px; border-radius: 16px; 
+            box-shadow: 0 4px 15px rgba(0,0,0,0.03); border: 1px solid #f0f0f0;
+            border-top: 6px solid <?= $pillar['color'] ?>; /* Dynamic Top Border */
+        }
         
         .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 25px; }
-        .form-group { margin-bottom: 5px; }
+        .form-group { margin-bottom: 10px; }
         .form-group.full { grid-column: 1 / -1; }
         
-        .form-group label { display: block; margin-bottom: 8px; font-weight: 600; color: #444; font-size: 0.9rem; }
-        .form-control { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 0.95rem; box-sizing: border-box; transition: 0.2s; background-color: #fcfcfc; }
-        .form-control:focus { border-color: #e67e00; outline: none; background-color: #fff; box-shadow: 0 0 0 3px rgba(230, 126, 0, 0.1); }
+        .form-group label { display: block; margin-bottom: 8px; font-weight: 700; color: #2c3e50; font-size: 0.9rem; }
+        .form-control { 
+            width: 100%; padding: 12px 15px; border: 1px solid #ddd; border-radius: 8px; 
+            font-family: inherit; font-size: 0.95rem; transition: 0.2s; box-sizing: border-box; 
+            background: #fafafa;
+        }
+        .form-control:focus { border-color: #ff8c00; background: #fff; outline: none; box-shadow: 0 0 0 3px rgba(255, 140, 0, 0.1); }
         
-        /* Icon Picker Style */
-        .icon-picker-input { border: 1px solid #ddd; padding: 12px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; gap: 12px; background: #fcfcfc; transition: 0.2s; }
-        .icon-picker-input:hover { background: #fff; border-color: #ccc; }
-        
-        /* Buttons */
-        .form-actions { margin-top: 30px; text-align: right; border-top: 1px solid #eee; padding-top: 25px; display: flex; justify-content: flex-end; gap: 10px; }
-        .btn-save { background-color: #e67e00; color: #fff; border: none; padding: 12px 30px; border-radius: 6px; cursor: pointer; font-size: 1rem; font-weight: 600; display: inline-flex; align-items: center; gap: 8px; }
-        .btn-save:hover { background-color: #cf7100; }
-        .btn-cancel { background-color: #f5f5f5; color: #555; text-decoration: none; padding: 12px 25px; border-radius: 6px; font-weight: 600; border: 1px solid #ddd; }
-        .btn-cancel:hover { background-color: #eee; }
-
-        /* Lock Icon for Readonly Fields */
+        /* Input Wrapper for Icons */
         .input-wrapper { position: relative; }
-        .input-wrapper .fa-lock { position: absolute; right: 10px; top: 12px; color: #999; font-size: 0.8rem; }
+        .input-wrapper .fa-lock { position: absolute; right: 15px; top: 14px; color: #b2bec3; font-size: 0.9rem; }
 
-        /* Modal for Icon */
-        .icon-modal { display: none; position: fixed; z-index: 9999; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); align-items: center; justify-content: center; backdrop-filter: blur(2px); }
-        .icon-modal-content { background: #fff; width: 500px; max-height: 80vh; border-radius: 12px; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 10px 40px rgba(0,0,0,0.2); }
-        .icon-modal-header { padding: 15px 20px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; background: #f9f9f9; }
-        .icon-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(60px, 1fr)); gap: 10px; padding: 20px; overflow-y: auto; }
-        .icon-item { display: flex; flex-direction: column; align-items: center; gap: 5px; padding: 10px; border-radius: 6px; cursor: pointer; border: 1px solid transparent; transition: 0.2s; }
-        .icon-item:hover { background: #fff3e0; border-color: #ffe0b2; color: #e67e00; }
+        /* Icon Picker */
+        .icon-picker-input { 
+            border: 1px solid #ddd; padding: 12px; border-radius: 8px; cursor: pointer; 
+            display: flex; align-items: center; gap: 15px; background: #fafafa; transition: 0.2s;
+        }
+        .icon-picker-input:hover { background: #fff; border-color: #ff8c00; }
+        
+        /* Actions */
+        .form-actions { margin-top: 30px; text-align: right; border-top: 1px solid #f0f0f0; padding-top: 25px; display: flex; justify-content: flex-end; gap: 10px; }
+        .btn-save { 
+            background: linear-gradient(135deg, #ff8c00, #e67e00); color: #fff; border: none; 
+            padding: 12px 30px; border-radius: 30px; cursor: pointer; font-size: 1rem; font-weight: 700; 
+            transition: 0.2s; display: inline-flex; align-items: center; gap: 10px;
+        }
+        .btn-save:hover { transform: translateY(-2px); box-shadow: 0 4px 15px rgba(255, 140, 0, 0.3); }
+        
+        .btn-cancel { 
+            background: #fff; border: 1px solid #ddd; color: #555; padding: 12px 25px; 
+            border-radius: 30px; font-weight: 600; text-decoration: none; transition: 0.2s; 
+        }
+        .btn-cancel:hover { background: #f0f0f0; border-color: #ccc; }
+
+        /* Icon Modal */
+        .icon-modal { display: none; position: fixed; z-index: 9999; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); backdrop-filter: blur(3px); align-items: center; justify-content: center; }
+        .icon-modal-content { background: #fff; width: 600px; max-height: 80vh; border-radius: 16px; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 10px 40px rgba(0,0,0,0.2); }
+        .icon-modal-header { padding: 20px 25px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; background: #fdfdfd; }
+        .icon-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(70px, 1fr)); gap: 10px; padding: 25px; overflow-y: auto; background: #fafafa; }
+        .icon-item { 
+            display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 15px 10px; 
+            border-radius: 8px; cursor: pointer; border: 1px solid #eee; background: #fff; transition: 0.2s; 
+        }
+        .icon-item:hover { border-color: #ff8c00; transform: translateY(-3px); box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+        .icon-item i { font-size: 1.5rem; color: #555; }
+        .icon-item span { font-size: 0.7rem; color: #888; text-align: center; word-break: break-all; }
+
+        /* Alert */
+        .info-alert { 
+            background: #e3f2fd; color: #0d47a1; padding: 15px; border-radius: 8px; 
+            margin-bottom: 25px; border: 1px solid #bbdefb; display: flex; align-items: center; gap: 10px; 
+            font-size: 0.95rem; font-weight: 500;
+        }
     </style>
 </head>
 
@@ -138,7 +164,7 @@ $lockedClass = $isApproved ? 'locked-field' : '';
 <?php include "../../layout/sidebar.php"; ?>
 
 <div class="main-content">
-    <div class="page-wrapper" style="padding: 30px;">
+    <div class="page-wrapper">
 
         <div class="page-header">
             <h1 class="page-title"><i class="fa-solid fa-pen-to-square"></i> Edit Pillar</h1>
@@ -151,8 +177,9 @@ $lockedClass = $isApproved ? 'locked-field' : '';
         <?php endif; ?>
 
         <?php if($isApproved): ?>
-            <div style="background:#e3f2fd; color:#0d47a1; padding:12px; border-radius:6px; margin-bottom:20px; font-size:0.9rem; border-left:4px solid #1976d2;">
-                <i class="fa-solid fa-circle-info"></i> This pillar is <strong>Approved</strong>. Core fields (Name, Duration) are locked.
+            <div class="info-alert">
+                <i class="fa-solid fa-circle-info" style="font-size:1.2rem;"></i>
+                <div>This pillar is <strong>Approved</strong>. Core fields (Name, Duration) are locked to maintain integrity.</div>
             </div>
         <?php endif; ?>
 
@@ -219,9 +246,9 @@ $lockedClass = $isApproved ? 'locked-field' : '';
 
                     <div class="form-group">
                         <label>Color Code</label>
-                        <div style="display:flex; gap:10px;">
-                            <input type="color" name="color" class="form-control" style="height:45px; width:60px; padding:2px;" value="<?= $pillar['color'] ?>">
-                            <input type="text" class="form-control" value="<?= $pillar['color'] ?>" readonly style="background:#f9f9f9;">
+                        <div style="display:flex; align-items:center; gap:10px;">
+                            <input type="color" name="color" value="<?= $pillar['color'] ?>" style="width:50px; height:45px; border:none; border-radius:8px; cursor:pointer; padding:0;">
+                            <input type="text" class="form-control" value="<?= $pillar['color'] ?>" readonly>
                         </div>
                     </div>
 
@@ -229,8 +256,14 @@ $lockedClass = $isApproved ? 'locked-field' : '';
                         <label>Icon</label>
                         <input type="hidden" name="icon" id="icon" value="<?= $pillar['icon'] ?>">
                         <div class="icon-picker-input" onclick="openIconPicker()">
-                            <i id="selectedIconPreview" class="fa-solid <?= $pillar['icon'] ?>" style="font-size: 1.4rem; color: <?= $pillar['color'] ?>;"></i>
-                            <span id="selectedIconText"><?= $pillar['icon'] ?></span>
+                            <div style="width:40px; height:40px; background:<?= $pillar['color'] ?>; border-radius:8px; display:flex; align-items:center; justify-content:center; color:white;">
+                                <i id="selectedIconPreview" class="fa-solid <?= $pillar['icon'] ?>"></i>
+                            </div>
+                            <div>
+                                <div style="font-weight:bold; color:#333;">Select Icon</div>
+                                <span id="selectedIconText" style="font-size:0.8rem; color:#777;"><?= $pillar['icon'] ?></span>
+                            </div>
+                            <i class="fa-solid fa-chevron-down" style="margin-left:auto; color:#ccc;"></i>
                         </div>
                     </div>
 
@@ -249,16 +282,16 @@ $lockedClass = $isApproved ? 'locked-field' : '';
 <div id="iconPickerModal" class="icon-modal">
     <div class="icon-modal-content">
         <div class="icon-modal-header">
-            <h3 style="margin:0; color:#333;">Select Icon</h3>
-            <span onclick="closeIconPicker()" style="cursor:pointer; font-size:1.5rem; color:#999;">&times;</span>
+            <h3 style="margin:0; font-size:1.2rem;">Select an Icon</h3>
+            <span onclick="closeIconPicker()" class="close-btn" style="cursor:pointer; font-size:1.5rem; color:#999;">&times;</span>
         </div>
-        <input type="text" id="iconSearch" placeholder="Search icons..." onkeyup="filterIcons()" style="margin:15px 20px; padding:10px; border:1px solid #ddd; border-radius:6px; display:block;">
+        <input type="text" id="iconSearch" placeholder="Search icons..." onkeyup="filterIcons()" style="margin:15px 25px; padding:12px; border:1px solid #ddd; border-radius:8px; width:calc(100% - 50px);">
         <div class="icon-grid" id="iconGrid"></div>
     </div>
 </div>
 
 <script>
-// --- كود الأيقونات (نفس السابق) ---
+// --- Icon Logic (Same as create.php) ---
 const iconList = [
     "fa-building","fa-briefcase","fa-chart-line","fa-coins","fa-sitemap","fa-diagram-project",
     "fa-folder-tree","fa-industry","fa-handshake","fa-landmark",
@@ -286,7 +319,7 @@ function buildIconGrid() {
         const el = document.createElement("div");
         el.className = "icon-item";
         el.setAttribute("data-icon", icon);
-        el.innerHTML = `<i class="fa-solid ${icon}"></i><span>${icon}</span>`;
+        el.innerHTML = `<i class="fa-solid ${icon}"></i><span>${icon.replace('fa-', '')}</span>`;
         el.onclick = () => selectIcon(icon);
         grid.appendChild(el);
     });
@@ -302,6 +335,7 @@ function selectIcon(icon) {
 
 function openIconPicker() {
     document.getElementById("iconPickerModal").style.display = "flex";
+    document.getElementById("iconSearch").focus();
 }
 function closeIconPicker() {
     document.getElementById("iconPickerModal").style.display = "none";

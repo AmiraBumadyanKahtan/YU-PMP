@@ -27,6 +27,78 @@
     align-items: center;
     gap: 12px;
 }
+        /* تنسيق معاينة الصورة */
+        .avatar-upload {
+            position: relative;
+            max-width: 150px;
+            margin: 0 auto 20px auto;
+            text-align: center;
+        }
+        .avatar-preview {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            border: 3px solid #e9ecef;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            background-size: cover;
+            background-position: center;
+            background-image: url('../../assets/images/default-avatar.png'); /* ضع صورة افتراضية هنا */
+            margin: 0 auto;
+        }
+        .avatar-edit {
+            position: absolute;
+            right: 10px;
+            bottom: 5px;
+        }
+        .avatar-edit input { display: none; }
+        .avatar-edit label {
+            display: inline-block;
+            width: 34px;
+            height: 34px;
+            margin-bottom: 0;
+            border-radius: 100%;
+            background: #3498db;
+            color: #fff;
+            border: 2px solid #ffffff;
+            box-shadow: 0px 2px 4px 0px rgba(0,0,0,0.12);
+            cursor: pointer;
+            font-weight: normal;
+            transition: all .2s ease-in-out;
+            line-height: 30px;
+            text-align: center;
+        }
+        .avatar-edit label:hover { background: #2980b9; }
+
+        /* تنسيق كلمة المرور */
+        .password-wrapper { position: relative; }
+        .toggle-password {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            cursor: pointer;
+            color: #aaa;
+        }
+        
+        /* تنسيق الفروع (Tiles) - موحد مع الأقسام */
+        .branch-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            gap: 10px;
+            margin-top: 5px;
+        }
+        .branch-option input[type="checkbox"] { display: none; }
+        .branch-label {
+            display: flex; align-items: center; justify-content: center;
+            padding: 10px; background: #fff; border: 1px solid #ddd;
+            border-radius: 8px; cursor: pointer; transition: all 0.2s;
+            font-size: 0.9rem; color: #555; text-align: center;
+        }
+        .branch-label:hover { border-color: #3498db; background: #f0f8ff; }
+        .branch-option input[type="checkbox"]:checked + .branch-label {
+            background: #e8f4fd; border-color: #3498db; color: #3498db; font-weight: bold;
+            box-shadow: 0 2px 5px rgba(52, 152, 219, 0.2);
+        }
 /* PAGE WRAPPER */
 .user-form-wrapper {
     font-family: "Varela Round", sans-serif;
@@ -42,11 +114,11 @@
 /* GRID SYSTEM */
 .form-grid {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(2, 1fr);
     gap: 22px;
 }
 
-.form-group {
+.form-group ,.password-wrapper {
     font-family: "Varela Round", sans-serif;
   font-weight: 400;
   font-style: normal;
@@ -65,7 +137,7 @@
 }
 
 .form-group input,
-.form-group select {
+.form-group select,.password-wrapper input {
     font-family: "Varela Round", sans-serif;
   font-weight: 400;
   font-style: normal;
@@ -86,48 +158,39 @@
 
 /* BUTTON */
 .save-btn {
-    font-family: "Varela Round", sans-serif;
+  font-family: "Varela Round", sans-serif;
   font-weight: 400;
   font-style: normal;
-    display: inline-block;
-    padding: 14px 26px;
-    background: #FF8C00;
+    background: var(--primary-orange);
     color: white;
-    font-size: 1rem;
-    font-weight: 600;
-    border-radius: 10px;
+    padding: 14px 30px;
+    border-radius:30px;
+    font-weight: 700;
     border: none;
-    margin-top: 25px;
+    font-size: 1rem;
     cursor: pointer;
-    transition: .2s;
+    transition: all 0.3s;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    box-shadow: 0 4px 15px rgba(255, 140, 0, 0.3);
+     width: 100%;
+    justify-content: center;
 }
 
 .save-btn:hover {
-    color:white;
-    background: black;
+    transform: translateY(-2px); box-shadow: 0 6px 15px rgba(255, 140, 0, 0.3);
 }
 /* Back Button */
-        .btn-secondary {
-            font-family: "Varela Round", sans-serif;
-  font-weight: 400;
-  font-style: normal;
-            background: #eee;
-            color: #333;
-            padding: 12px 20px;
-            border-radius: 8px;
-            text-decoration: none;
-        }
-        .btn-secondary:hover{
-            color:white;
-            background: var(--primary-orange);
-        }
-/* PAGE TITLE */
-.page-title i {
-    font-family: "Varela Round", sans-serif;
-  font-weight: 400;
-  font-style: normal;
-    margin-right: 10px;
-    color: #FF8C00;
+.btn-secondary {
+  font-family: "Varela Round", sans-serif;
+  background: #f1f2f6; color: #555; padding: 12px 25px; border-radius: 30px; 
+  text-decoration: none; font-weight: 600; transition: 0.2s; display: inline-flex;
+  align-items: center; gap: 6px; font-size: 1rem;
+}
+.btn-secondary:hover{
+  transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1); background: #e2e6ea; color: #ff8c00;
 }
 
 /* ALERTS */

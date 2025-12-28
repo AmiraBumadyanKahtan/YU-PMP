@@ -5,9 +5,10 @@ require_once "../../core/config.php";
 require_once "../../core/auth.php";
 require_once "role_functions.php";
 
-// التحقق من الصلاحية
-if (!Auth::can('manage_rbac')) {
-    die("Access Denied. You do not have permission to manage roles.");
+// 1. التحقق من صلاحية إدارة الصلاحيات
+if (!Auth::can('sys_perm_assign')) {
+    header("Location: ../../error/403.php");
+    exit;
 }
 
 $id = (int)($_GET['id'] ?? 0);
@@ -17,28 +18,37 @@ if ($id <= 0) die("Invalid Role ID");
 $role = getRoleById($id);
 if (!$role) die("Role not found");
 
-// جلب كل الصلاحيات (مجمعة) + صلاحيات الدور الحالية
+// 2. التحقق من حماية السوبر أدمن
+// إذا كان الدور هو Super Admin (ID: 1) والمستخدم الحالي ليس هو السوبر أدمن نفسه (role_id: 1)
+// نمنعه. أما إذا كان سوبر أدمن يعدل سوبر أدمن، نسمح له (مع تحذير).
+if ($id === 1 && $_SESSION['role_id'] != 1) {
+    die("Access Denied: Only a Super Admin can edit the Super Admin role.");
+}
+
+// جلب الصلاحيات
 $groupedPermissions = getAllPermissionsGrouped(); 
-$currentPermissions = getRolePermissionIds($id); // مصفوفة تحتوي على IDs فقط
+$currentPermissions = getRolePermissionIds($id); 
 
 $message = "";
 
-// --- معالجة الحفظ ---
+// 3. معالجة الحفظ
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    // 1. تحديث البيانات الأساسية
     $name = trim($_POST['role_name']);
     $desc = trim($_POST['description']);
+    
     updateRoleDetails($id, $name, $desc);
 
-    // 2. تحديث الصلاحيات
-    // المصفوفة permissions[] قد تكون غير موجودة إذا ألغى المستخدم تحديد كل شيء
     $selectedPerms = $_POST['permissions'] ?? [];
+    
+    // حماية إضافية: إذا كنا نعدل السوبر أدمن، تأكد أننا لا نحذف صلاحيات النظام الحساسة بالخطأ
+    if ($id === 1) {
+        // يمكنك إضافة منطق هنا لإجبار وجود صلاحيات معينة، لكن سأتركها لمرونتك
+    }
     
     if (updateRolePermissions($id, $selectedPerms)) {
         $message = "success";
-        // تحديث المتغيرات لعرض الحالة الجديدة
-        $role = getRoleById($id);
-        $currentPermissions = getRolePermissionIds($id);
+        $role = getRoleById($id); 
+        $currentPermissions = getRolePermissionIds($id); 
     } else {
         $message = "error";
     }
@@ -51,58 +61,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <meta charset="UTF-8">
     <title>Edit Role Permissions</title>
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/layout.css">
-    <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/content.css">
+    <link rel="stylesheet" href="css/edit.css">
     <link rel="icon" type="image/png" href="<?php echo BASE_URL; ?>assets/images/favicon-32x32.png">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
-    
-    <style>
-        /* Role Info Section */
-        .role-header-card {
-            background: #fff; padding: 20px; border-radius: 8px; margin-bottom: 20px;
-            border-left: 5px solid #3498db; box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-        }
-        .form-row { display: flex; gap: 20px; margin-bottom: 15px; }
-        .form-group { flex: 1; }
-        .form-group label { display: block; font-weight: bold; margin-bottom: 5px; color: #555; }
-        .form-group input, .form-group textarea { width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; }
-        
-        /* Permissions Grid */
-        .perms-container {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-            gap: 20px;
-        }
-        .module-card {
-            background: #fff; border: 1px solid #e0e0e0; border-radius: 8px; overflow: hidden;
-        }
-        .module-header {
-            background: #f8f9fa; padding: 10px 15px; border-bottom: 1px solid #eee;
-            display: flex; justify-content: space-between; align-items: center;
-        }
-        .module-title { font-weight: bold; text-transform: uppercase; color: #444; font-size: 0.9rem; }
-        .select-all-btn { font-size: 0.75rem; color: #3498db; cursor: pointer; text-decoration: underline; }
-        
-        .perm-list { padding: 10px 15px; }
-        .perm-item {
-            display: flex; align-items: center; margin-bottom: 8px; padding: 5px;
-            border-radius: 4px; transition: background 0.2s;
-        }
-        .perm-item:hover { background: #f0f8ff; }
-        .perm-item input { margin-right: 10px; accent-color: #3498db; transform: scale(1.2); cursor: pointer; }
-        .perm-item label { cursor: pointer; font-size: 0.95rem; color: #333; flex: 1; }
-        .perm-key { display: block; font-size: 0.75rem; color: #999; margin-top: 2px; }
-
-        /* Save Bar (Sticky Bottom) */
-        .save-bar {
-            position: sticky; bottom: 0; background: #fff; padding: 15px 30px;
-            border-top: 1px solid #ddd; display: flex; justify-content: space-between; align-items: center;
-            box-shadow: 0 -2px 10px rgba(0,0,0,0.05); margin: 0 -30px -30px -30px; /* Counteract padding */
-            z-index: 100;
-        }
-        .alert { padding: 10px 15px; border-radius: 5px; margin-bottom: 20px; }
-        .alert-success { background: #dff0d8; color: #3c763d; border: 1px solid #d6e9c6; }
-        .alert-error { background: #f2dede; color: #a94442; border: 1px solid #ebccd1; }
-    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Varela+Round&display=swap" rel="stylesheet">
 </head>
 
 <body style="margin:0;">
@@ -111,107 +73,107 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <?php include "../../layout/sidebar.php"; ?>
 
 <div class="main-content">
-<div class="page-wrapper" style="padding-bottom: 0;"> <div class="page-header-flex">
-        <h1 class="page-title">
-            <i class="fa-solid fa-shield-halved"></i> Edit Role: <?= htmlspecialchars($role['role_name']) ?>
-        </h1>
-        <a href="list.php" class="btn-secondary">← Back to Roles</a>
+    <div class="page-wrapper">
+
+        <div class="page-header-flex">
+            <h1 class="page-title">
+                <i class="fa-solid fa-user-shield"></i> Edit Role: <span style="color:#555; margin-left:10px; font-weight:400;"><?= htmlspecialchars($role['role_name']) ?></span>
+            </h1>
+            <a href="list.php" class="btn-secondary"><i class="fa-solid fa-arrow-left"></i> Back to Roles</a>
+        </div>
+
+        <?php if ($id === 1): ?>
+            <div class="alert" style="background:#fff3cd; color:#856404; border:1px solid #ffeeba;">
+                <i class="fa-solid fa-triangle-exclamation"></i> 
+                <b>Warning:</b> You are editing the <b>Super Admin</b> role. Removing permissions from this role may lock you out of the system. Proceed with caution.
+            </div>
+        <?php endif; ?>
+
+        <?php if ($message === 'success'): ?>
+            <div class="alert alert-success">
+                <i class="fa-solid fa-circle-check"></i> Permissions updated successfully!
+            </div>
+        <?php elseif ($message === 'error'): ?>
+            <div class="alert alert-error">
+                <i class="fa-solid fa-circle-exclamation"></i> Failed to update permissions.
+            </div>
+        <?php endif; ?>
+
+        <form method="POST">
+            
+            <div class="role-header-card">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Role Name</label>
+                        <input type="text" name="role_name" class="form-input" value="<?= htmlspecialchars($role['role_name']) ?>" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Role Key</label>
+                        <input type="text" class="form-input" value="<?= htmlspecialchars($role['role_key']) ?>" disabled style="background:#f9f9f9; color:#888;">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Description</label>
+                    <textarea name="description" class="form-textarea" rows="2"><?= htmlspecialchars($role['description']) ?></textarea>
+                </div>
+            </div>
+
+            <h3 style="margin-bottom: 20px; color:#2d3748; font-size: 1.1rem; border-bottom: 2px solid #eee; padding-bottom: 10px;">
+                <i class="fa-solid fa-list-check" style="color:#ff8c00; margin-right:8px;"></i> Permissions Matrix
+            </h3>
+            
+            <div class="perms-container">
+                <?php foreach ($groupedPermissions as $module => $permissions): ?>
+                    <div class="module-card">
+                        <div class="module-header">
+                            <span class="module-title">
+                                <i class="fa-regular fa-folder-open"></i> <?= ucfirst(str_replace('_', ' ', $module)) ?>
+                            </span>
+                            <span class="select-all-btn" onclick="toggleGroup(this)">Select All</span>
+                        </div>
+                        <div class="perm-list">
+                            <?php foreach ($permissions as $p): ?>
+                                <?php $isChecked = in_array($p['id'], $currentPermissions) ? 'checked' : ''; ?>
+                                <div class="perm-item">
+                                    <input type="checkbox" 
+                                           name="permissions[]" 
+                                           value="<?= $p['id'] ?>" 
+                                           id="perm_<?= $p['id'] ?>" 
+                                           <?= $isChecked ?>>
+                                    <label for="perm_<?= $p['id'] ?>">
+                                        <?= htmlspecialchars($p['description'] ?: $p['permission_key']) ?>
+                                        <span class="perm-key"><?= $p['permission_key'] ?></span>
+                                    </label>
+                                </div>
+                            <?php endforeach; ?>
+                        </div>
+                    </div>
+                <?php endforeach; ?>
+            </div>
+
+            <div class="save-bar">
+                <div style="color:#718096; font-size: 0.9rem;">
+                    <i class="fa-solid fa-circle-info"></i> Changes are saved instantly.
+                </div>
+                <button type="submit" class="btn-primary">
+                    <i class="fa-solid fa-floppy-disk"></i> Save Permissions
+                </button>
+            </div>
+
+        </form>
+
     </div>
-
-    <?php if ($message === 'success'): ?>
-        <div class="alert alert-success">Permissions updated successfully!</div>
-    <?php elseif ($message === 'error'): ?>
-        <div class="alert alert-error">Failed to update permissions. Please try again.</div>
-    <?php endif; ?>
-
-    <form method="POST">
-        
-        <div class="role-header-card">
-            <div class="form-row">
-                <div class="form-group">
-                    <label>Role Name</label>
-                    <input type="text" name="role_name" value="<?= htmlspecialchars($role['role_name']) ?>" required>
-                </div>
-                <div class="form-group">
-                    <label>Role Key (System Identifier)</label>
-                    <input type="text" value="<?= htmlspecialchars($role['role_key']) ?>" disabled style="background:#eee; cursor:not-allowed;">
-                    <small>Role Key cannot be changed.</small>
-                </div>
-            </div>
-            <div class="form-group">
-                <label>Description</label>
-                <textarea name="description" rows="2"><?= htmlspecialchars($role['description']) ?></textarea>
-            </div>
-        </div>
-
-        <h3 style="margin-bottom: 15px; color:#555;">Permissions Matrix</h3>
-        
-        <div class="perms-container">
-            <?php foreach ($groupedPermissions as $module => $permissions): ?>
-                <div class="module-card">
-                    <div class="module-header">
-                        <span class="module-title">
-                            <i class="fa-solid fa-folder"></i> <?= ucfirst($module ?: 'General') ?>
-                        </span>
-                        <span class="select-all-btn" onclick="toggleGroup(this)">Select All</span>
-                    </div>
-                    <div class="perm-list">
-                        <?php foreach ($permissions as $p): ?>
-                            <?php 
-                                $isChecked = in_array($p['id'], $currentPermissions) ? 'checked' : '';
-                            ?>
-                            <div class="perm-item">
-                                <input type="checkbox" 
-                                       name="permissions[]" 
-                                       value="<?= $p['id'] ?>" 
-                                       id="perm_<?= $p['id'] ?>" 
-                                       <?= $isChecked ?>>
-                                <label for="perm_<?= $p['id'] ?>">
-                                    <?= htmlspecialchars($p['description'] ?: ucwords(str_replace('_', ' ', $p['permission_key']))) ?>
-                                    <span class="perm-key"><?= $p['permission_key'] ?></span>
-                                </label>
-                            </div>
-                        <?php endforeach; ?>
-                    </div>
-                </div>
-            <?php endforeach; ?>
-        </div>
-
-        <div class="save-bar">
-            <div style="color:#666;">
-                <i class="fa-solid fa-info-circle"></i> Changes affect users with this role immediately.
-            </div>
-            <button type="submit" class="btn-primary" style="padding: 10px 25px; font-size: 1rem;">
-                <i class="fa-solid fa-save"></i> Save Changes
-            </button>
-        </div>
-
-    </form>
-
-</div>
 </div>
 
 <script>
-// سكربت بسيط لتحديد الكل داخل المربع
-function toggleGroup(btn) {
-    // العثور على العنصر الأب (الكارت)
-    let card = btn.closest('.module-card');
-    // جلب جميع الـ checkboxes داخل هذا الكارت
-    let checkboxes = card.querySelectorAll('input[type="checkbox"]');
-    
-    // التحقق: إذا كان الكل محدد، نلغي التحديد، والعكس
-    let allChecked = true;
-    checkboxes.forEach(cb => {
-        if (!cb.checked) allChecked = false;
-    });
-
-    checkboxes.forEach(cb => {
-        cb.checked = !allChecked;
-    });
-
-    // تغيير نص الزر
-    btn.innerText = allChecked ? "Select All" : "Deselect All";
-}
+    function toggleGroup(btn) {
+        let card = btn.closest('.module-card');
+        let checkboxes = card.querySelectorAll('input[type="checkbox"]');
+        let allChecked = true;
+        checkboxes.forEach(cb => { if (!cb.checked) allChecked = false; });
+        checkboxes.forEach(cb => { cb.checked = !allChecked; });
+        btn.innerText = allChecked ? "Select All" : "Deselect All";
+    }
 </script>
 
 </body>

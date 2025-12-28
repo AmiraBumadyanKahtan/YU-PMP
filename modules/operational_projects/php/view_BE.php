@@ -1,5 +1,6 @@
 <?php
 // modules/operational_projects/php/view_BE.php
+
 require_once "../../core/config.php";
 require_once "../../core/auth.php";
 require_once "../../core/common_functions.php";
@@ -18,46 +19,46 @@ if (!$project) {
     exit;
 }
 
-// 3. تعريف الصلاحيات
-$db = Database::getInstance()->pdo();
+// 3. التحقق من صلاحية "المشاهدة" الأساسية (View Dashboard)
+// نستخدم userCanInProject للتحقق مما إذا كان المستخدم يملك صلاحية العرض في سياق هذا المشروع
+$canView = userCanInProject($id, 'proj_view_dashboard');
 
-// هل المستخدم هو مدير المشروع؟
-$isManager = ($project['manager_id'] == $_SESSION['user_id']);
+// إذا لم يكن لديه صلاحية صريحة، نتحقق مما إذا كان المشروع عام (Public)
+if (!$canView && $project['visibility'] === 'public') {
+    $canView = true;
+}
 
-// هل المستخدم سوبر أدمن أو تنفيذي؟
-$isSuperAdmin = in_array($_SESSION['role_key'], ['super_admin', 'ceo']);
-
-// هل المستخدم عضو في الفريق؟
-$isTeamMember = $db->query("SELECT 1 FROM project_team WHERE project_id=$id AND user_id={$_SESSION['user_id']}")->fetchColumn();
-
-// --- [إضافة جديدة] هل المستخدم هو رئيس القسم الذي يتبع له المشروع؟ ---
-$deptManagerId = $db->query("SELECT manager_id FROM departments WHERE id = {$project['department_id']}")->fetchColumn();
-$isDeptHead = ($deptManagerId == $_SESSION['user_id']);
-
-
-// هل لديه صلاحية الدخول؟ (تمت إضافة $isDeptHead)
-$hasAccess = ($isManager || $isSuperAdmin || $isTeamMember || $isDeptHead || $project['visibility'] == 'public');
-
-if (!$hasAccess) {
+if (!$canView) {
     include "../../layout/header.php"; include "../../layout/sidebar.php";
-    echo "<div class='main-content'><div class='page-wrapper'><div class='alert alert-danger'><i class='fa-solid fa-lock'></i> Access Denied.</div></div></div>";
+    echo "<div class='main-content'><div class='page-wrapper'><div class='alert alert-danger'><i class='fa-solid fa-lock'></i> Access Denied. You do not have permission to view this project.</div></div></div>";
     exit;
 }
 
-// تعريف صلاحية التعديل (يمكنك إضافة $isDeptHead هنا أيضاً إذا كنت تريد السماح لرئيس القسم بالتعديل)
-$canEdit = ($isManager || $isSuperAdmin || Auth::can('edit_project'));
+// 4. تعريف الصلاحيات الدقيقة للإجراءات (Action Permissions)
+// نستخدم مفاتيح الصلاحيات الموجودة في جدول permissions
+$canEditBasic   = userCanInProject($id, 'proj_edit_basic');      // تعديل البيانات الأساسية والأهداف
+$canManageDocs  = userCanInProject($id, 'pdoc_manage');          // رفع وحذف الملفات
+$canSubmit      = userCanInProject($id, 'proj_submit_approval'); // إرسال للموافقة
 
-// --- معالجة النماذج ---
+$db = Database::getInstance()->pdo();
 
-// 1. إضافة هدف استراتيجي
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['new_objective']) && $canEdit) {
+// التحقق من حالة المشروع (لتقييد الإجراءات حسب الحالة)
+$statusId = $project['status_id'];
+$isDraft = ($statusId == 1);
+$isReturned = ($statusId == 3);
+$isEditableStatus = ($isDraft || $isReturned); // التعديل مسموح فقط في هذه الحالات
+
+// --- معالجة النماذج (POST Requests) ---
+
+// 1. إضافة هدف استراتيجي (يتطلب صلاحية التعديل + حالة قابلة للتعديل)
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['new_objective']) && $canEditBasic && $isEditableStatus) {
     addProjectObjective($id, $_POST['new_objective']);
     header("Location: view.php?id=$id&msg=objective_added");
     exit;
 }
 
-// 2. رفع ملف داعم
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['upload_support_doc']) && $canEdit) {
+// 2. رفع ملف داعم (يتطلب صلاحية إدارة المستندات + حالة قابلة للتعديل)
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['upload_support_doc']) && $canManageDocs && $isEditableStatus) {
     if (isset($_FILES['file']) && $_FILES['file']['error'] == 0) {
         $data = [
             'project_id' => $id,
@@ -66,6 +67,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['upload_support_doc'])
             'parent_type' => 'project',
             'parent_id' => $id
         ];
+        // دالة الرفع موجودة في project_doc.php المضمنة داخل project_functions.php
         $res = uploadProjectDocument($data, $_FILES['file']);
         if($res['ok']) { header("Location: view.php?id=$id&msg=doc_uploaded"); exit; }
         else { $error = $res['error']; }
@@ -74,15 +76,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['upload_support_doc'])
     }
 }
 
-// 3. حذف ملف
-if (isset($_GET['delete_doc']) && $canEdit) {
-    deleteDocument($_GET['delete_doc']);
-    header("Location: view.php?id=$id&msg=doc_deleted");
-    exit;
+// 3. حذف ملف (يتطلب صلاحية إدارة المستندات + حالة قابلة للتعديل)
+if (isset($_GET['delete_doc']) && $canManageDocs && $isEditableStatus) {
+    // يجب التحقق من أن المستند تابع لهذا المشروع قبل الحذف (أمان إضافي)
+    $docId = $_GET['delete_doc'];
+    $verifyDoc = $db->query("SELECT 1 FROM documents WHERE id=$docId AND parent_type='project' AND parent_id=$id")->fetch();
+    
+    if ($verifyDoc) {
+        deleteDocument($docId);
+        header("Location: view.php?id=$id&msg=doc_deleted");
+        exit;
+    }
 }
 
-// 4. إرسال للموافقة (تم التعديل: التحقق من وجود ملفات)
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_approval']) && $canEdit) {
+// 4. إرسال للموافقة (يتطلب صلاحية الإرسال + حالة قابلة للتعديل)
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_approval']) && $canSubmit && $isEditableStatus) {
     // التحقق: هل يوجد ملفات مرفقة؟
     $docCount = $db->query("SELECT COUNT(*) FROM documents WHERE parent_type='project' AND parent_id=$id AND is_deleted=0")->fetchColumn();
     
@@ -92,22 +100,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_approval']) &&
         if ($res['ok']) { header("Location: view.php?id=$id&msg=submitted"); exit; }
         else { $error = $res['error']; }
     } else {
-        // لا يوجد ملفات، أظهر خطأ
         $error = "Submission Failed: You must upload at least one supporting document before submitting for approval.";
     }
 }
 
 // --- جلب البيانات للعرض ---
 $objectives = getProjectObjectives($id);
-$tracker = getProjectWorkflowTracker($id);
+$tracker = getProjectWorkflowTracker($id); // دالة التتبع (Approvals)
 // جلب المستندات
 $supportDocs = $db->query("SELECT * FROM documents WHERE parent_type='project' AND parent_id=$id AND is_deleted=0 ORDER BY created_at DESC")->fetchAll();
 
-$statusId = $project['status_id'];
-$isApproved = ($statusId == 5); 
-$isDraft = ($statusId == 1);
-$isReturned = ($statusId == 3);
-
-// متغير للتحقق في الواجهة
+// متغير للتحقق في الواجهة (هل يوجد مستندات؟)
 $hasDocuments = (count($supportDocs) > 0);
+
 ?>

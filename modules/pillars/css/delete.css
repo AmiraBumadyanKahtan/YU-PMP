@@ -4,7 +4,7 @@
 
 .page-wrapper {
     padding: 2rem;
-    font-family: "Times New Roman", serif;
+    font-family: "Varela Round", sans-serif;
 }
 /* Page Header */
 .page-header-flex {
@@ -75,7 +75,7 @@
         font-weight:600;
     }
     .btn{
-        font-family: "Times New Roman", serif;
+        font-family: "Varela Round", sans-serif;
     margin-top: 1.5rem;
     display: flex;
     gap: 15px;
@@ -83,7 +83,7 @@
     justify-content: space-between;
     }
     .btn-danger {
-        font-family: "Times New Roman", serif;
+        font-family: "Varela Round", sans-serif;
         background:#c00000;
         color:#fff;
         border:none;

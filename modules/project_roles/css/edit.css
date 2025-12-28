@@ -1,0 +1,111 @@
+.page-wrapper {
+    padding: 30px;
+    font-family: "Varela Round", sans-serif;
+  font-weight: 400;
+  font-style: normal;
+}
+
+/* Page Header */
+.page-header-flex {
+    font-family: "Varela Round", sans-serif;
+  font-weight: 400;
+  font-style: normal;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 18px;
+}
+
+.page-title {
+    font-family: "Varela Round", sans-serif;
+  font-weight: 400;
+  font-style: normal;
+    font-size: 2rem;
+    font-weight: 700;
+    color: #ff8c00;
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+.page-title i { color: #ff8c00; }
+
+        /* Permissions Layout */
+        .perm-section { 
+            margin-bottom: 30px; border: 1px solid #e2e8f0; border-radius: 10px; 
+            overflow: hidden; background: #fff; box-shadow: 0 4px 10px rgba(0,0,0,0.02);
+        }
+        .perm-header {
+            background: #f8fafc; padding: 15px 20px; border-bottom: 1px solid #e2e8f0;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .perm-header h3 { margin: 0; font-size: 1rem; color: #2d3748; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+        .perm-header h3 i { color: #a0aec0; }
+        
+        .perm-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 1px; background: #edf2f7; /* لون الفواصل */
+        }
+        
+        .perm-item {
+            background: #fff; padding: 15px; 
+            display: flex; align-items: flex-start; gap: 12px;
+            cursor: pointer; transition: background 0.15s;
+        }
+        .perm-item:hover { background: #fffaf0; }
+        
+        .perm-item input[type="checkbox"] {
+            margin-top: 4px; transform: scale(1.1); accent-color: #ff8c00; cursor: pointer;
+        }
+        
+        .perm-text { flex: 1; }
+        .perm-title { display: block; font-weight: 600; color: #2d3748; font-size: 0.95rem; margin-bottom: 4px; }
+        .perm-key { 
+            display: inline-block; font-size: 0.75rem; color: #718096; font-family: monospace; 
+            background: #edf2f7; padding: 2px 6px; border-radius: 4px; border: 1px solid #e2e8f0;
+        }
+        
+        .select-all { 
+            color: #3182ce; font-size: 0.85rem; font-weight: 600; cursor: pointer; user-select: none; 
+            padding: 4px 10px; border-radius: 4px; transition: 0.2s;
+        }
+        .select-all:hover { background: #ebf8ff; }
+        
+        /* --- [FIXED] Sticky Save Bar --- */
+        .save-bar {
+            position: fixed; 
+            bottom: 0; 
+            right: 0; 
+            /* التعديل هنا: يبدأ من 260px (عرض السايدبار) */
+            left: 260px; 
+            background: #fff; 
+            padding: 15px 40px; 
+            border-top: 1px solid #e2e8f0;
+            display: flex; justify-content: flex-end; align-items: center; gap: 15px;
+            box-shadow: 0 -4px 20px rgba(0,0,0,0.05); 
+            z-index: 999;
+            transition: left 0.3s ease; /* انسيابية عند إغلاق السايدبار */
+        }
+        
+        /* في حال كانت الشاشة صغيرة واختفى السايدبار */
+        @media (max-width: 900px) { 
+            .save-bar { left: 0; padding: 15px 20px; } 
+        }
+        /* -------------------------------- */
+
+        .btn-primary { 
+            background: linear-gradient(135deg, #ff8c00, #e67e00); color: white; border: none; 
+            padding: 10px 30px; border-radius: 30px; font-weight: 700; cursor: pointer; 
+            box-shadow: 0 4px 10px rgba(255, 140, 0, 0.2); font-size: 1rem; 
+            display: flex; align-items: center; gap: 8px; transition: 0.2s;
+        }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 6px 15px rgba(255, 140, 0, 0.3); }
+
+        .btn-secondary { 
+            background: #f1f2f6; color: #555; padding: 8px 20px; border-radius: 30px; 
+            text-decoration: none; font-weight: 600; font-size: 0.9rem; transition: 0.2s; 
+        }
+        .btn-secondary:hover { background: #e2e6ea; color: #ff8c00; }
+        
+        .info-text { color: #718096; font-size: 0.9rem; margin-right: auto; display: flex; align-items: center; gap: 6px; }

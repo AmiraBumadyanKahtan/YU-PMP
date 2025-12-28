@@ -1,17 +1,30 @@
 <?php
+// modules/users/view.php
+
 require_once "../../core/config.php";
 require_once "../../core/auth.php";
 require_once "user_functions.php";
 
-
-
-if (!Auth::can('manage_users')) {
-    echo json_encode(['status' => 'error', 'message' => 'Access denied']);
+// التحقق من الدخول للنظام أولاً
+if (!Auth::check()) {
+    header("Location: ../../login.php");
     exit;
 }
 
 $id = $_GET['id'] ?? null;
 if (!$id) die("Invalid user ID");
+
+// تحديد هل المستخدم هو صاحب الحساب؟
+$isMe = ($_SESSION['user_id'] == $id);
+
+// هل يملك صلاحية عرض المستخدمين؟
+$canViewUsers = Auth::can('sys_user_view');
+
+// السماح بالدخول إذا كان يملك صلاحية العرض أو هو صاحب الحساب
+if (!$canViewUsers && !$isMe) {
+    header("Location: ../../error/403.php");
+    exit;
+}
 
 // جلب بيانات المستخدم
 $user = getUserById($id);
@@ -19,6 +32,11 @@ if (!$user) die("User not found");
 
 // إحصائيات المستخدم
 $stats = getUserStats($id);
+
+// تحديد صلاحيات التعديل والحذف
+$canEdit   = Auth::can('sys_user_edit');
+$canDelete = Auth::can('sys_user_delete');
+
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -30,43 +48,18 @@ $stats = getUserStats($id);
     <link rel="stylesheet" href="css/users.css">
     <link rel="icon" type="image/png" href="../../assets/images/favicon-32x32.png">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Fira+Sans+Condensed:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Harmattan:wght@400;500;600;700&family=Varela+Round&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Varela+Round&display=swap" rel="stylesheet">
     
     <style>
-        .btn {
-            padding: 8px 15px;
-            border-radius: 8px;
-            font-size: .9rem;
-            text-decoration: none;
-            border: none;
-            cursor: pointer;
-        }
-
-        .btn-back {
-            background: #eee;
-            color: #444;
-        }
-        .btn-back:hover {
-            background: #ff8c00;
-            color: #444;
-        }
-
-        .btn-edit { font-family: "Varela Round", sans-serif;
-  font-weight: 400;
-  font-style: normal;background: #def5e7; color: #1b7f3a; }
-        .btn-edit:hover{
-            color:#def5e7;
-            background: #1b7f3a;
-        }
-        .btn-delete {font-family: "Varela Round", sans-serif;
-  font-weight: 400;
-  font-style: normal; background: #ffe4e4; color: #ad1c1c; }
-        .btn-delete:hover{
-            color: #ffe4e4;
-            background: #ad1c1c;
-        }
+        /* CSS retained from your code */
+        .btn { padding: 8px 15px; border-radius: 8px; font-size: .9rem; text-decoration: none; border: none; cursor: pointer; font-family: "Varela Round", sans-serif; display: inline-flex; align-items: center; gap: 5px; }
+        .btn-back { background: #eee; color: #444; } .btn-back:hover { background: #ff8c00; color: #444; }
+        .btn-edit { background: #def5e7; color: #1b7f3a; } .btn-edit:hover{ color:#def5e7; background: #1b7f3a; }
+        .btn-delete { background: #ffe4e4; color: #ad1c1c; } .btn-delete:hover{ color: #ffe4e4; background: #ad1c1c; }
+        
+        /* تنسيقات إضافية بسيطة للبادجات في صفحة التفاصيل */
+        .badge-active { background: #def5e7; color: #1a7f37; padding: 4px 10px; border-radius: 12px; font-size: 0.85rem; font-weight: bold; }
+        .badge-inactive { background: #ffe4e4; color: #c21d1d; padding: 4px 10px; border-radius: 12px; font-size: 0.85rem; font-weight: bold; }
     </style>
 </head>
 
@@ -78,36 +71,56 @@ $stats = getUserStats($id);
 <div class="main-content">
 <div class="page-wrapper">
 
-    <!-- PAGE HEADER -->
     <div class="page-header-flex">
         <h1 class="page-title">
             <i class="fa-solid fa-user"></i> User Details
         </h1>
 
         <div>
-            <a href="list.php" class="btn btn-back" style="margin-right:10px;">← Back</a>
-            <a href="edit.php?id=<?= $id ?>" class="btn btn-edit" style="margin-right:10px;">Edit</a>
-            <a href="delete.php?id=<?= $id ?>"class="btn btn-delete"
-               onclick="return confirm('Are you sure you want to delete this user?')">Delete</a>
+            <?php if ($canViewUsers): ?>
+                <a href="list.php" class="btn btn-back" style="margin-right:10px;">← Back</a>
+            <?php else: ?>
+                <a href="../../index.php" class="btn btn-back" style="margin-right:10px;">← Dashboard</a>
+            <?php endif; ?>
+
+            <?php if ($canEdit || $isMe): ?>
+                <a href="edit.php?id=<?= $id ?>" class="btn btn-edit" style="margin-right:10px;">
+                    <i class="fa-solid fa-pen"></i> Edit
+                </a>
+            <?php endif; ?>
+
+            <?php if ($canDelete): ?>
+                <a href="delete.php?id=<?= $id ?>" class="btn btn-delete" onclick="return confirm('Are you sure you want to archive this user?')">
+                    <i class="fa-solid fa-trash"></i> Delete
+                </a>
+            <?php endif; ?>
         </div>
     </div>
 
-    <!-- MAIN USER CARD -->
     <div class="user-details-card">
 
         <div class="user-profile-left">
-            <img src="<?= $user['avatar'] ? '../../assets/uploads/avatars/'.$user['avatar'] : '../../assets/uploads/avatars/default-profile.png' ?>"
-                 class="user-profile-avatar">
+            <img src="<?= $user['avatar'] ? '../../assets/uploads/avatars/'.$user['avatar'] : '../../assets/uploads/avatars/default-profile.png' ?>" class="user-profile-avatar">
             <h2><?= htmlspecialchars($user['full_name_en']) ?></h2>
-            <p class="role-label"><?= htmlspecialchars($user['role_name']) ?></p>
-            <p class="dept-label"><?= $user['department_name'] ?: '—' ?></p>
+            <p class="role-label"><?= htmlspecialchars($user['role_name'] ?? 'No Role') ?></p>
+            <p class="dept-label"><?= htmlspecialchars($user['department_name'] ?? '—') ?></p>
         </div>
 
         <div class="user-profile-info">
 
             <div class="info-row">
+                <label>Username:</label>
+                <span><?= htmlspecialchars($user['username']) ?></span>
+            </div>
+
+            <div class="info-row">
                 <label>Email:</label>
                 <span><?= htmlspecialchars($user['email']) ?></span>
+            </div>
+
+            <div class="info-row">
+                <label>Phone:</label>
+                <span><?= htmlspecialchars($user['phone'] ?? '—') ?></span>
             </div>
 
             <div class="info-row">
@@ -118,20 +131,24 @@ $stats = getUserStats($id);
             </div>
 
             <div class="info-row">
+                <label>Job Title:</label>
+                <span><?= htmlspecialchars($user['job_title'] ?? '—') ?></span>
+            </div>
+
+            <div class="info-row">
                 <label>Created At:</label>
-                <span><?= $user['created_at'] ?></span>
+                <span><?= date('d M Y, h:i A', strtotime($user['created_at'])) ?></span>
             </div>
 
             <div class="info-row">
                 <label>Last Updated:</label>
-                <span><?= $user['updated_at'] ?></span>
+                <span><?= date('d M Y, h:i A', strtotime($user['updated_at'])) ?></span>
             </div>
 
         </div>
     </div>
 
-    <!-- USER STATISTICS -->
-    <h2 class="section-title">User Statistics</h2>
+    <h2 class="section-title" style="margin-top:30px; margin-bottom:15px; font-weight:700; color:#444;">User Statistics</h2>
 
     <div class="stats-grid">
 
@@ -161,7 +178,9 @@ $stats = getUserStats($id);
 
         <div class="stat-card">
             <i class="fa-solid fa-clock stat-icon"></i>
-            <div class="stat-number"><?= $stats['last_login'] ?: "—" ?></div>
+            <div class="stat-number">
+                <?= $stats['last_login'] ? date('d M', strtotime($stats['last_login'])) : "—" ?>
+            </div>
             <div class="stat-label">Last Login</div>
         </div>
 

@@ -47,18 +47,20 @@
 
         /* Buttons */
         .btn-primary { 
+            font-family: "Varela Round", sans-serif;
             background: linear-gradient(135deg, #ff8c00, #e67e00); color: white; border: none; 
-            padding: 10px 20px; border-radius: 8px; font-weight: 600; text-decoration: none; 
+            padding: 10px 20px; border-radius: 30px; font-weight: 600; text-decoration: none; 
             display: inline-flex; align-items: center; gap: 8px; transition: transform 0.2s, box-shadow 0.2s;
             cursor: pointer; box-shadow: 0 4px 10px rgba(255, 140, 0, 0.2);
         }
         .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 6px 15px rgba(255, 140, 0, 0.3); }
 
         .btn-reset { 
-            background: #f1f2f6; color: #666; padding: 10px 20px; border-radius: 8px; 
+            background: #ffe5e5;color: #b00; padding: 10px 20px; border-radius: 30px; 
             text-decoration: none; font-weight: 600; transition: 0.2s; display: inline-flex; align-items: center;
+            box-shadow: 0 6px 15px rgba(187, 0, 0, 0.332);
         }
-        .btn-reset:hover { background: #e2e6ea; color: #ff8c00; }
+        .btn-reset:hover { background: #ffcccc;transform: translateY(-2px); box-shadow: 0 6px 15px rgba(187, 0, 0, 0.332); }
 
         /* Table Styles */
         .table-container { background: #fff; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.03); overflow: hidden; border: 1px solid #f0f0f0; }

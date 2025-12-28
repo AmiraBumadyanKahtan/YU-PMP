@@ -1,4 +1,5 @@
 <?php
+// modules/operational_projects/project_risks.php
 
 // =========================================================
 // 5. RISK MANAGEMENT
@@ -27,10 +28,7 @@ function getProjectRisks($project_id) {
 function createRisk($data) {
     $db = Database::getInstance()->pdo();
     
-    // حساب درجة الخطر (Probability x Impact)
-    // في قاعدة البيانات العمود risk_score هو GENERATED ALWAYS، لذا لا نرسله، قاعدة البيانات تحسبه.
-    // لكن إذا لم يكن كذلك، نحسبه: $score = $data['probability'] * $data['impact'];
-    
+    // ملاحظة: risk_score يحسب تلقائياً في قاعدة البيانات (Generated Column)
     $stmt = $db->prepare("
         INSERT INTO risk_assessments 
         (parent_type, parent_id, title, description, mitigation_plan, probability, impact, status_id, identified_date, created_at)

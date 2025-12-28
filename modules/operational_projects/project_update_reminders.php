@@ -8,7 +8,7 @@
  * التحقق من التذكيرات وإرسالها لمدراء المشاريع
  * (يتم استدعاء هذه الدالة في الهيدر أو الداشبورد)
  */
-function checkAndSendProjectReminders() {
+/*function checkAndSendProjectReminders() {
     $db = Database::getInstance()->pdo();
     $today = date('Y-m-d');
 
@@ -53,11 +53,11 @@ function checkAndSendProjectReminders() {
         $upd = $db->prepare("UPDATE project_update_reminders SET next_reminder_date = ? WHERE id = ?");
         $upd->execute([$nextDate, $r['id']]);
     }
-}
+}*/
 
 /**
  * إرسال تحديث من مدير المشروع
- */
+ *//*
 function submitProgressUpdate($project_id, $progress, $description) {
     $db = Database::getInstance()->pdo();
     
@@ -98,17 +98,79 @@ function submitProgressUpdate($project_id, $progress, $description) {
         return ['ok' => true];
     }
     return ['ok' => false, 'error' => 'Failed to submit update'];
-}
+}*/
+/**
+ * [محدث] التحقق من التذكيرات وإرسالها لمدراء المشاريع
+ * الآن ترسل إيميل أيضاً باستخدام sendProjectNotification
+ */
+function checkAndSendProjectReminders() {
+    $db = Database::getInstance()->pdo();
+    $today = date('Y-m-d');
 
+    // جلب التذكيرات المستحقة
+    $sql = "
+        SELECT r.*, p.name as project_name 
+        FROM project_update_reminders r
+        JOIN operational_projects p ON p.id = r.project_id
+        WHERE r.next_reminder_date <= ? AND r.is_active = 1
+    ";
+    $stmt = $db->prepare($sql);
+    $stmt->execute([$today]);
+    $reminders = $stmt->fetchAll();
+
+    foreach ($reminders as $r) {
+        // التحقق من عدم وجود تذكير سابق مفتوح
+        $checkTodo = $db->prepare("SELECT id FROM user_todos WHERE related_entity_type = 'project_update' AND related_entity_id = ? AND is_completed = 0");
+        $checkTodo->execute([$r['project_id']]);
+        
+        if (!$checkTodo->fetch()) {
+            // [MODIFIED] استخدام دالة الإشعارات (إيميل + تودو)
+            if (function_exists('sendProjectNotification')) {
+                sendProjectNotification(
+                    $r['manager_id'],
+                    "Update Required: " . $r['project_name'],
+                    "It's time to submit your periodic progress update for project: {$r['project_name']}.",
+                    "project_update", // الرابط يودي لصفحة الإرسال
+                    $r['project_id']
+                );
+            }
+        }
+
+        // تحديث التاريخ القادم
+        $nextDate = $today;
+        if ($r['frequency'] == 'daily') $nextDate = date('Y-m-d', strtotime('+1 day'));
+        elseif ($r['frequency'] == 'every_2_days') $nextDate = date('Y-m-d', strtotime('+2 days'));
+        elseif ($r['frequency'] == 'weekly') $nextDate = date('Y-m-d', strtotime('+1 week'));
+        elseif ($r['frequency'] == 'monthly') $nextDate = date('Y-m-d', strtotime('+1 month'));
+
+        $db->prepare("UPDATE project_update_reminders SET next_reminder_date = ? WHERE id = ?")->execute([$nextDate, $r['id']]);
+    }
+}
 /**
  * وضع التحديث كـ "تمت المشاهدة" (للرئيس التنفيذي)
+ */
+/**
+ * وضع التحديث كـ "تمت المشاهدة"
+ *//*
+function markUpdateAsViewed($updateId) {
+    $db = Database::getInstance()->pdo();
+    $stmt = $db->prepare("UPDATE project_updates SET status = 'viewed' WHERE id = ?");
+    $stmt->execute([$updateId]);
+    
+    // إغلاق إشعار الـ CEO
+    $db->prepare("UPDATE user_todos SET is_completed = 1 WHERE related_entity_type = 'ceo_review' AND related_entity_id = ? AND user_id = ?")
+       ->execute([$updateId, $_SESSION['user_id']]);
+}*/
+/**
+ * وضع التحديث كـ "تمت المشاهدة"
  */
 function markUpdateAsViewed($updateId) {
     $db = Database::getInstance()->pdo();
     $stmt = $db->prepare("UPDATE project_updates SET status = 'viewed' WHERE id = ?");
     $stmt->execute([$updateId]);
     
-    // إغلاق التودو الخاص بالرئيس التنفيذي
-    $db->prepare("UPDATE user_todos SET is_completed = 1 WHERE related_entity_type = 'ceo_review' AND related_entity_id = ?")->execute([$updateId]);
+    // إغلاق تنبيه الـ CEO المرتبط بهذا التحديث
+    $db->prepare("UPDATE user_todos SET is_completed = 1 WHERE related_entity_type = 'ceo_review' AND related_entity_id = ? AND user_id = ?")
+       ->execute([$updateId, $_SESSION['user_id']]);
 }
 ?>

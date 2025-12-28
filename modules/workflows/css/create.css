@@ -1,0 +1,78 @@
+        .page-wrapper {
+    padding: 30px;
+    font-family: "Varela Round", sans-serif;
+  font-weight: 400;
+  font-style: normal;
+}
+
+/* Page Header */
+.page-header-flex {
+    font-family: "Varela Round", sans-serif;
+  font-weight: 400;
+  font-style: normal;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 18px;
+}
+
+.page-title {
+    font-family: "Varela Round", sans-serif;
+  font-weight: 400;
+  font-style: normal;
+    font-size: 2rem;
+    font-weight: 700;
+    color: #ff8c00;
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+.page-title i { color: #ff8c00; }
+
+        /* Form Card */
+        .form-card { 
+            background: #fff; padding: 40px; border-radius: 12px; 
+            box-shadow: 0 4px 20px rgba(0,0,0,0.04); border: 1px solid #f0f0f0; 
+         margin: 0 auto; 
+        }
+
+        /* Inputs */
+        .form-group { margin-bottom: 25px; }
+        .form-label { display: block; margin-bottom: 8px; font-weight: 600; color: #2c3e50; font-size: 0.95rem; }
+        .form-control { 
+            width: 100%; padding: 12px 15px; border: 1px solid #e0e0e0; border-radius: 8px; 
+            box-sizing: border-box; font-family: inherit; font-size: 0.95rem; transition: all 0.2s;
+        }
+        .form-control:focus { border-color: #ff8c00; outline: none; box-shadow: 0 0 0 3px rgba(255, 140, 0, 0.1); }
+        
+        /* Checkbox Style */
+        .checkbox-wrapper {
+            display: flex; align-items: center; gap: 10px; padding: 10px; 
+            background: #f9f9f9; border-radius: 8px; border: 1px solid #eee; cursor: pointer;
+        }
+        .checkbox-wrapper:hover { background: #fff; border-color: #ff8c00; }
+        .checkbox-wrapper input { accent-color: #ff8c00; transform: scale(1.1); cursor: pointer; }
+        .checkbox-label { font-weight: 600; color: #555; cursor: pointer; }
+
+        /* Buttons */
+        .btn-primary { 
+            font-family: "Varela Round", sans-serif;
+            background: linear-gradient(135deg, #ff8c00, #e67e00); color: white; border: none; 
+            padding: 12px 30px; border-radius: 30px; font-weight: 600; cursor: pointer; 
+            transition: transform 0.2s, box-shadow 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px;
+            box-shadow: 0 4px 10px rgba(255, 140, 0, 0.2); font-size: 1rem; width: 100%;
+        }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 6px 15px rgba(255, 140, 0, 0.3); }
+
+        .btn-secondary { 
+            background: #f1f2f6; color: #555; padding: 8px 20px; border-radius: 30px; 
+            text-decoration: none; font-weight: 600; transition: 0.2s; display: inline-flex; align-items: center; gap: 6px; font-size: 0.9rem;
+        }
+        .btn-secondary:hover { background: #e2e6ea; color: #ff8c00; }
+
+        /* Error Box */
+        .alert-error { 
+            background: #fff5f5; color: #c0392b; padding: 15px; border-radius: 8px; 
+            border: 1px solid #feb2b2; margin-bottom: 20px; display: flex; align-items: center; gap: 10px;
+        }

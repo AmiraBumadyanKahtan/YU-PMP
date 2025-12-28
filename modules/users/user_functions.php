@@ -3,13 +3,11 @@
 
 // استخدام __DIR__ يضمن أن المسار صحيح دائماً
 require_once __DIR__ . '/../../core/Database.php';
-
 /**
  * جلب المستخدمين مع الفلاتر
  */
 function getFilteredUsers($filters = []) {
     $db = Database::getInstance()->pdo();
-
     $sql = "
         SELECT u.*, r.role_name, d.name AS department_name
         FROM users u
@@ -17,16 +15,12 @@ function getFilteredUsers($filters = []) {
         LEFT JOIN departments d ON d.id = u.department_id
         WHERE (u.is_deleted = 0 OR u.is_deleted IS NULL)
     ";
-
     $params = [];
 
-    // البحث
     if (!empty($filters['search'])) {
         $sql .= " AND (u.full_name_en LIKE :s OR u.full_name_ar LIKE :s OR u.email LIKE :s)";
         $params[':s'] = "%" . $filters['search'] . "%";
     }
-
-    // الفلاتر
     if (!empty($filters['role_id'])) {
         $sql .= " AND u.primary_role_id = :role_id";
         $params[':role_id'] = $filters['role_id'];
@@ -40,11 +34,84 @@ function getFilteredUsers($filters = []) {
         $params[':st'] = $filters['status'];
     }
 
-    $sql .= " ORDER BY u.id ASC";
-
+    $sql .= " ORDER BY u.id DESC"; // الأحدث أولاً
     $stmt = $db->prepare($sql);
     $stmt->execute($params);
     return $stmt->fetchAll();
+}
+
+/**
+ * إنشاء مستخدم جديد (يرجع المعرف ID في حال النجاح)
+ */
+function createUser(array $data) {
+    $db = Database::getInstance()->pdo();
+    
+    // التحقق من التكرار
+    $check = $db->prepare("SELECT COUNT(*) FROM users WHERE (username = ? OR email = ?) AND is_deleted = 0");
+    $check->execute([$data['username'], $data['email']]);
+    if ($check->fetchColumn() > 0) {
+        return ['ok' => false, 'error' => 'Username or Email already exists'];
+    }
+
+    $hash = password_hash($data['password'], PASSWORD_BCRYPT);
+    
+    $stmt = $db->prepare("
+        INSERT INTO users 
+        (username, email, password, full_name_en, full_name_ar, primary_role_id, department_id, phone, job_title, avatar, is_active, created_at, updated_at, is_deleted) 
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW(), 0)
+    ");
+    
+    $ok = $stmt->execute([
+        $data['username'], $data['email'], $hash, 
+        $data['full_name_en'] ?? null, $data['full_name_ar'] ?? null, 
+        $data['primary_role_id'] ?? null, $data['department_id'] ?? null, 
+        $data['phone'] ?? null, $data['job_title'] ?? null, 
+        $data['avatar'] ?? null, (int)($data['is_active'] ?? 1)
+    ]);
+
+    if ($ok) {
+        $newId = $db->lastInsertId();
+        // تسجيل النشاط
+        log_user_activity('create', 'user', $newId, null, $data['username']);
+        return ['ok' => true, 'id' => $newId];
+    }
+
+    return ['ok' => false, 'error' => 'Database Error: Insert Failed'];
+}
+
+/**
+ * تحديث فروع المستخدم
+ */
+function updateUserBranches($user_id, $branch_ids) {
+    $db = Database::getInstance()->pdo();
+    
+    $del = $db->prepare("DELETE FROM user_branches WHERE user_id = ?");
+    $del->execute([$user_id]);
+
+    if (!empty($branch_ids) && is_array($branch_ids)) {
+        $ins = $db->prepare("INSERT INTO user_branches (user_id, branch_id) VALUES (?, ?)");
+        foreach ($branch_ids as $bid) {
+            $ins->execute([$user_id, (int)$bid]);
+        }
+    }
+}
+
+/**
+ * دالة مساعدة لتسجيل النشاط (نسخة مبسطة)
+ */
+function log_user_activity($action, $entity_type, $entity_id, $old_val, $new_val) {
+    try {
+        $db = Database::getInstance()->pdo();
+        $stmt = $db->prepare("INSERT INTO activity_log (user_id, action, entity_type, entity_id, old_value, new_value, ip_address) VALUES (?, ?, ?, ?, ?, ?, ?)");
+        $stmt->execute([
+            $_SESSION['user_id'] ?? 0, $action, $entity_type, $entity_id, $old_val, $new_val, $_SERVER['REMOTE_ADDR'] ?? '::1'
+        ]);
+    } catch(Exception $e) {}
+}
+
+function getAllBranches() {
+    $db = Database::getInstance()->pdo();
+    return $db->query("SELECT * FROM branches WHERE is_active = 1 ORDER BY branch_name ASC")->fetchAll();
 }
 
 /**
@@ -131,28 +198,6 @@ function getUserStats($user_id) {
 /**
  * دوال الإنشاء والتعديل
  */
-function createUser(array $data) {
-    $db = Database::getInstance()->pdo();
-    
-    // Check duplicates
-    $check = $db->prepare("SELECT COUNT(*) FROM users WHERE username = ? OR email = ?");
-    $check->execute([$data['username'], $data['email']]);
-    if ($check->fetchColumn() > 0) return ['ok' => false, 'error' => 'Username or Email already exists'];
-
-    $hash = password_hash($data['password'], PASSWORD_BCRYPT);
-    $stmt = $db->prepare("INSERT INTO users (username, email, password, full_name_en, full_name_ar, primary_role_id, department_id, phone, job_title, avatar, is_active, created_at, updated_at, is_deleted) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW(), 0)");
-    
-    $ok = $stmt->execute([
-        $data['username'], $data['email'], $hash, 
-        $data['full_name_en'] ?? null, $data['full_name_ar'] ?? null, 
-        $data['primary_role_id'] ?? null, $data['department_id'] ?? null, 
-        $data['phone'] ?? null, $data['job_title'] ?? null, 
-        $data['avatar'] ?? null, (int)($data['is_active'] ?? 1)
-    ]);
-
-    return $ok ? ['ok' => true, 'id' => $db->lastInsertId()] : ['ok' => false, 'error' => 'Insert Failed'];
-}
-
 function updateUser(int $id, array $data) {
     $db = Database::getInstance()->pdo();
     
@@ -189,14 +234,6 @@ function updateUser(int $id, array $data) {
     return $ok ? ['ok' => true] : ['ok' => false, 'error' => 'Update Failed'];
 }
 /**
- * جلب جميع الفروع النشطة
- */
-function getAllBranches() {
-    $db = Database::getInstance()->pdo();
-    return $db->query("SELECT * FROM branches WHERE is_active = 1 ORDER BY branch_name ASC")->fetchAll();
-}
-
-/**
  * جلب فروع المستخدم
  */
 function getUserBranches($user_id) {
@@ -206,20 +243,4 @@ function getUserBranches($user_id) {
     return $stmt->fetchAll(PDO::FETCH_COLUMN);
 }
 
-/**
- * تحديث فروع المستخدم
- */
-function updateUserBranches($user_id, $branch_ids) {
-    $db = Database::getInstance()->pdo();
-    
-    $del = $db->prepare("DELETE FROM user_branches WHERE user_id = ?");
-    $del->execute([$user_id]);
-
-    if (!empty($branch_ids) && is_array($branch_ids)) {
-        $ins = $db->prepare("INSERT INTO user_branches (user_id, branch_id) VALUES (?, ?)");
-        foreach ($branch_ids as $bid) {
-            $ins->execute([$user_id, (int)$bid]);
-        }
-    }
-}
 ?>

@@ -1,13 +1,81 @@
-body { font-family: "Varela Round", sans-serif; background-color: #fcfcfc; margin: 0; }
-        .page-wrapper { padding: 2rem; }
+        /* --- General Layout --- */
+        body {margin: 0;font-family: 'Varela Round', sans-serif; color: #334155; }
+        .page-wrapper { padding: 2rem; margin: 0 auto; }
+
+        /* --- Header Section --- */
+        .page-header-flex { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 30px; }
+        .page-title h3 { margin: 0; color: #1e293b; font-weight: 800; font-size:1.5rem; letter-spacing: -0.5px; }
+        .page-title p { margin: 8px 0 0; color: #64748b; font-size: 0.95rem; }
+
+        /* --- Alerts --- */
+        .locked-banner { 
+            background: #fffbeb; border: 1px solid #fcd34d; color: #92400e; 
+            padding: 16px; border-radius: 12px; margin-bottom: 30px; 
+            display: flex; align-items: center; gap: 12px; font-size: 0.95rem; 
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        }
+
+        /* --- Table Container (Card Style) --- */
+        .table-card {
+            background: #fff; border-radius: 16px; 
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.03), 0 4px 6px -2px rgba(0, 0, 0, 0.01);
+            border: 1px solid #f1f5f9; overflow: hidden;
+        }
+
+        /* --- Modern Table Styles --- */
+        .collab-table { width: 100%; border-collapse: collapse; }
         
-        /* ... (نفس الستايلات السابقة، يمكنك نسخها من team.php لتوحيد الملف) ... */
-        /* اختصاراً سأضع الستايلات الخاصة هنا */
-        .content-card { background: #fff; padding: 25px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.03); margin-top:20px; }
-        .modern-table { width: 100%; border-collapse: collapse; }
-        .modern-table th { text-align: left; padding: 15px; background: #fff4e1; color: #c86a12; border-bottom: 2px solid #ffe0b2; }
-        .modern-table td { padding: 15px; border-bottom: 1px solid #f9f9f9; }
-        .status-badge { padding: 4px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: bold; }
-        .status-1 { background:#fff3e0; color:#f39c12; } .status-2 { background:#e8f5e9; color:#2ecc71; } .status-3 { background:#ffebee; color:#e74c3c; }
-        .btn-primary { background: #ff8c00; color: white; border: none; padding: 8px 15px; border-radius: 8px; font-weight: bold; text-decoration:none; display:inline-block; }
-    
+        .collab-table th { 
+            background: #fff4e1;
+            color: #c86a12;
+            border-bottom: 2px solid #ffe0b2;
+            text-align: left; font-size: 0.8rem; 
+            padding: 20px 24px; font-weight: 700; text-transform: uppercase; 
+            letter-spacing: 0.05em;
+        }
+        
+        .collab-row { transition: background 0.15s ease; border-bottom: 1px solid #f1f5f9; }
+        .collab-row:hover { background: #f8fafc; }
+        .collab-row:last-child { border-bottom: none; }
+        
+        .collab-row td { 
+            padding: 20px 24px; vertical-align: middle; color: #334155; font-size: 0.95rem;
+        }
+
+        /* --- Typography inside table --- */
+        .dept-name { font-weight: 700; color: #1e293b; display: flex; align-items: center; gap: 10px; }
+        .dept-icon { color: #cbd5e1; font-size: 1rem; }
+        
+        .reason-text { color: #475569; font-size: 0.9rem; line-height: 1.5; max-width: 400px; }
+        .date-text { color: #64748b; font-size: 0.85rem; font-weight: 500; }
+
+        /* --- Badges --- */
+        .status-badge { 
+            padding: 6px 14px; border-radius: 50px; font-size: 0.75rem; font-weight: 700; 
+            display: inline-flex; align-items: center; gap: 6px; letter-spacing: 0.02em; text-transform: uppercase;
+        }
+        /* Pending */
+        .status-1 { background: #fff7ed; color: #c2410c; border: 1px solid #ffedd5; } 
+        /* Approved */
+        .status-2 { background: #f0fdf4; color: #15803d; border: 1px solid #dcfce7; }
+        /* Rejected */
+        .status-3 { background: #fef2f2; color: #b91c1c; border: 1px solid #fee2e2; }
+
+        /* --- Buttons --- */
+        .btn-primary-pill { 
+            font-family: "Varela Round", sans-serif;
+            background: linear-gradient(135deg, #ff8c00, #e67e00);
+            color: #fff; border: none; padding: 12px 28px; border-radius: 50px; 
+            font-weight: 700; cursor: pointer; transition: all 0.3s ease; 
+            display: inline-flex; align-items: center; gap: 10px; 
+            box-shadow: 0 4px 12px rgba(234, 88, 12, 0.3); font-size: 0.95rem; text-decoration: none;
+        }
+        .btn-primary-pill:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(255, 140, 0, 0.4); }
+
+        /* --- Empty State --- */
+        .empty-state { text-align: center; padding: 60px 20px; }
+        .empty-icon { font-size: 3.5rem; color: #e2e8f0; margin-bottom: 15px; display: block; }
+        .empty-text { color: #94a3b8; font-size: 1rem; margin: 0; }
+
+        /* --- Assigned User --- */
+        .assigned-user { display: flex; align-items: center; gap: 8px; color: #166534; font-weight: 600; font-size: 0.9rem; }

@@ -9,6 +9,7 @@ require_once __DIR__ . '/../../core/Database.php';
 function dept_all($search = '') {
     $db = Database::getInstance()->pdo();
     
+    // تعديل: استخدام Parameters للبحث لمنع أي مشاكل
     $sql = "
         SELECT d.*, u.full_name_en AS manager_name
         FROM departments d
@@ -17,7 +18,6 @@ function dept_all($search = '') {
     ";
 
     $params = [];
-
     if (!empty($search)) {
         $sql .= " AND d.name LIKE :search";
         $params[':search'] = "%$search%";
@@ -31,14 +31,18 @@ function dept_all($search = '') {
 }
 
 /**
- * جلب قائمة المستخدمين (لملء قائمة المدراء)
+ * دالة جديدة: جلب المدراء المحتملين فقط (بدلاً من كتابة الكود في create.php)
  */
-function dept_all_users() {
+function dept_get_potential_managers() {
     $db = Database::getInstance()->pdo();
+    // نفترض أن الـ role_key للمدراء هو 'department_manager' بناءً على قاعدة البيانات
     return $db->query("
         SELECT id, full_name_en
         FROM users
-        WHERE is_active = 1 AND (is_deleted = 0 OR is_deleted IS NULL)
+        WHERE primary_role_id IN (
+            SELECT id FROM roles WHERE role_key = 'department_manager'
+        )
+        AND is_active = 1 AND is_deleted = 0
         ORDER BY full_name_en ASC
     ")->fetchAll();
 }
@@ -64,10 +68,9 @@ function dept_create($name, $manager_id) {
     $newId = $db->lastInsertId();
 
     // تسجيل النشاط
-    try {
-        $log = $db->prepare("INSERT INTO activity_log (user_id, action, entity_type, entity_id, new_value, ip_address) VALUES (?, 'create', 'department', ?, ?, ?)");
-        $log->execute([$_SESSION['user_id'] ?? 0, $newId, $name, $_SERVER['REMOTE_ADDR'] ?? '::1']);
-    } catch (Exception $e) {}
+    if ($newId) {
+        log_activity('create', 'department', $newId, null, $name);
+    }
 
     return $newId;
 }
@@ -77,22 +80,14 @@ function dept_create($name, $manager_id) {
  */
 function dept_update($id, $name, $manager_id) {
     $db = Database::getInstance()->pdo();
-    $old = dept_get($id); // للنشاط (اختياري)
+    $old = dept_get($id); 
 
     $stmt = $db->prepare("UPDATE departments SET name = ?, manager_id = ?, updated_at = NOW() WHERE id = ?");
     $result = $stmt->execute([$name, $manager_id ?: null, $id]);
 
-    // تسجيل النشاط
-    try {
-        $log = $db->prepare("INSERT INTO activity_log (user_id, action, entity_type, entity_id, old_value, new_value, ip_address) VALUES (?, 'update', 'department', ?, ?, ?, ?)");
-        $log->execute([
-            $_SESSION['user_id'] ?? 0, 
-            $id, 
-            json_encode($old), 
-            json_encode(['name' => $name, 'manager' => $manager_id]), 
-            $_SERVER['REMOTE_ADDR'] ?? '::1'
-        ]);
-    } catch (Exception $e) {}
+    if ($result) {
+        log_activity('update', 'department', $id, json_encode($old), json_encode(['name' => $name, 'manager' => $manager_id]));
+    }
 
     return $result;
 }
@@ -103,36 +98,38 @@ function dept_update($id, $name, $manager_id) {
 function dept_delete($id) {
     $db = Database::getInstance()->pdo();
     
-    // التحقق من الارتباطات (اختياري ولكنه مفضل)
-    // مثلاً هل يوجد موظفين في هذا القسم؟
+    // التحقق: هل يوجد موظفين مرتبطين بهذا القسم؟
     $check = $db->prepare("SELECT COUNT(*) FROM users WHERE department_id = ? AND is_deleted = 0");
     $check->execute([$id]);
     if ($check->fetchColumn() > 0) {
-        return false; // لا يمكن الحذف لوجود موظفين
+        return "has_users"; // نرجع كود خطأ مخصص بدلاً من false
+    }
+
+    // التحقق: هل يوجد مشاريع مرتبطة؟ (إضافة مهمة بناء على قاعدة البيانات)
+    $checkProj = $db->prepare("SELECT COUNT(*) FROM operational_projects WHERE department_id = ? AND is_deleted = 0");
+    $checkProj->execute([$id]);
+    if ($checkProj->fetchColumn() > 0) {
+        return "has_projects";
     }
 
     $stmt = $db->prepare("UPDATE departments SET is_deleted = 1, deleted_at = NOW() WHERE id = ?");
     $result = $stmt->execute([$id]);
 
-    // تسجيل النشاط
-    try {
-        $log = $db->prepare("INSERT INTO activity_log (user_id, action, entity_type, entity_id, new_value, ip_address) VALUES (?, 'soft_delete', 'department', ?, 'soft deleted', ?)");
-        $log->execute([$_SESSION['user_id'] ?? 0, $id, $_SERVER['REMOTE_ADDR'] ?? '::1']);
-    } catch (Exception $e) {}
+    if ($result) {
+        log_activity('soft_delete', 'department', $id, null, 'soft deleted');
+    }
 
     return $result;
 }
+
 /**
- * جلب جميع الفروع النشطة (للقوائم)
+ * دوال الفروع
  */
 function getAllActiveBranches() {
     $db = Database::getInstance()->pdo();
     return $db->query("SELECT * FROM branches WHERE is_active = 1 ORDER BY branch_name ASC")->fetchAll();
 }
 
-/**
- * جلب الفروع المرتبطة بقسم معين
- */
 function getDepartmentBranches($dept_id) {
     $db = Database::getInstance()->pdo();
     $stmt = $db->prepare("SELECT branch_id FROM department_branches WHERE department_id = ?");
@@ -140,22 +137,60 @@ function getDepartmentBranches($dept_id) {
     return $stmt->fetchAll(PDO::FETCH_COLUMN);
 }
 
-/**
- * تحديث فروع القسم (حذف القديم وإضافة الجديد)
- */
 function updateDepartmentBranches($dept_id, $branch_ids) {
     $db = Database::getInstance()->pdo();
     
-    // 1. حذف الارتباطات القديمة
+    // حذف القديم
     $del = $db->prepare("DELETE FROM department_branches WHERE department_id = ?");
     $del->execute([$dept_id]);
 
-    // 2. إضافة الارتباطات الجديدة
+    // إضافة الجديد
     if (!empty($branch_ids) && is_array($branch_ids)) {
         $ins = $db->prepare("INSERT INTO department_branches (department_id, branch_id) VALUES (?, ?)");
         foreach ($branch_ids as $bid) {
             $ins->execute([$dept_id, (int)$bid]);
         }
+    }
+}
+/**
+ * تحقق هل اسم القسم موجود مسبقاً؟
+ * $id = نستخدمه عند التعديل لاستثناء القسم الحالي من الفحص
+ */
+function dept_name_exists($name, $exclude_id = null) {
+    $db = Database::getInstance()->pdo();
+    $sql = "SELECT COUNT(*) FROM departments WHERE name = ? AND is_deleted = 0";
+    $params = [$name];
+
+    if ($exclude_id) {
+        $sql .= " AND id != ?";
+        $params[] = $exclude_id;
+    }
+
+    $stmt = $db->prepare($sql);
+    $stmt->execute($params);
+    return $stmt->fetchColumn() > 0;
+}
+
+/**
+ * دالة مساعدة لتسجيل النشاط (لتنظيف الكود وتكراره)
+ */
+function log_activity($action, $entity_type, $entity_id, $old_value = null, $new_value = null) {
+    global $db; // أو استدعي الـ Instance
+    if (!$db) $db = Database::getInstance()->pdo();
+    
+    try {
+        $stmt = $db->prepare("INSERT INTO activity_log (user_id, action, entity_type, entity_id, old_value, new_value, ip_address) VALUES (?, ?, ?, ?, ?, ?, ?)");
+        $stmt->execute([
+            $_SESSION['user_id'] ?? 0, 
+            $action, 
+            $entity_type, 
+            $entity_id, 
+            $old_value, 
+            $new_value, 
+            $_SERVER['REMOTE_ADDR'] ?? '::1'
+        ]);
+    } catch (Exception $e) {
+        // Silent fail for logging
     }
 }
 ?>

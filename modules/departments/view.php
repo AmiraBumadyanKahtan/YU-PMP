@@ -4,20 +4,24 @@
 require_once "../../core/config.php";
 require_once "../../core/auth.php";
 require_once "../../core/Database.php";
+require_once "department_functions.php"; 
 
-if (!Auth::can('manage_departments')) {
-    die("Access denied.");
+// ✅ 1. التعديل: استخدام صلاحية العرض المحددة
+if (!Auth::can('sys_dept_view')) {
+    header("Location: ../../error/403.php");
+    exit;
 }
 
 $db = Database::getInstance()->pdo();
 
-// Get Department Data
+// 2. التحقق من ID
 $id = isset($_GET['id']) ? (int) $_GET['id'] : 0;
 
 $stmt = $db->prepare("
     SELECT d.*, 
            u.full_name_en AS manager_name,
-           u.id AS manager_id
+           u.id AS manager_id,
+           u.avatar
     FROM departments d
     LEFT JOIN users u ON d.manager_id = u.id
     WHERE d.id = :id
@@ -26,16 +30,25 @@ $stmt->execute([':id' => $id]);
 $dept = $stmt->fetch();
 
 if (!$dept) {
-    die("Department not found.");
+    die("Error: Department not found.");
 }
 
-// Stats
+// 3. جلب الفروع
+$branchIds = getDepartmentBranches($dept['id']);
+$allBranchesRaw = getAllActiveBranches();
+$branchNames = [];
+foreach ($allBranchesRaw as $b) {
+    if (in_array($b['id'], $branchIds)) {
+        $branchNames[] = $b['branch_name'];
+    }
+}
+
+// 4. الإحصائيات
 $stats = [
     "projects" => $db->query("SELECT COUNT(*) FROM operational_projects WHERE department_id = {$dept['id']} AND (is_deleted=0 OR is_deleted IS NULL)")->fetchColumn(),
     "collabs"  => $db->query("SELECT COUNT(*) FROM collaborations WHERE department_id = {$dept['id']}")->fetchColumn(),
     "users"    => $db->query("SELECT COUNT(*) FROM users WHERE department_id = {$dept['id']} AND (is_deleted=0 OR is_deleted IS NULL)")->fetchColumn(),
 ];
-
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -44,8 +57,9 @@ $stats = [
     <title>Department Details</title>
 
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/layout.css">
-    <link rel="icon" type="image/png" href="<?php echo BASE_URL; ?>assets/images/favicon-32x32.png">
     <link rel="stylesheet" href="css/view.css">
+    <link rel="icon" type="image/png" href="../../assets/images/favicon-32x32.png">
+    
     <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <link href="https://fonts.googleapis.com/css2?family=Varela+Round&display=swap" rel="stylesheet">
@@ -90,24 +104,45 @@ $stats = [
         </div>
 
         <div class="details-card">
+            
+            <h3 class="card-subtitle">General Information</h3>
+            
             <div class="details-grid">
                 
                 <div class="details-row">
                     <div class="details-label">Department Name</div>
-                    <div class="details-value" style="font-size: 1.3rem; color: #2c3e50; font-weight: 700;">
+                    <div class="details-value name-value">
                         <?= htmlspecialchars($dept['name']); ?>
                     </div>
                 </div>
 
                 <div class="details-row">
-                    <div class="details-label">Manager</div>
+                    <div class="details-label">Assigned Branches</div>
+                    <div class="details-value">
+                        <?php if (!empty($branchNames)): ?>
+                            <?php foreach ($branchNames as $bName): ?>
+                                <span class="badge-branch">
+                                    <i class="fa-solid fa-location-dot"></i> <?= htmlspecialchars($bName) ?>
+                                </span>
+                            <?php endforeach; ?>
+                        <?php else: ?>
+                            <span class="text-muted">No branches assigned</span>
+                        <?php endif; ?>
+                    </div>
+                </div>
+
+                <div class="details-row">
+                    <div class="details-label">Head of Dept.</div>
                     <div class="details-value">
                         <?php if ($dept['manager_name']): ?>
                             <a href="../users/view.php?id=<?= $dept['manager_id'] ?>" class="manager-link">
-                                <i class="fa-solid fa-user-tie"></i> <?= htmlspecialchars($dept['manager_name']) ?>
+                                <div class="manager-avatar">
+                                    <?= strtoupper(substr($dept['manager_name'], 0, 1)) ?>
+                                </div>
+                                <?= htmlspecialchars($dept['manager_name']) ?>
                             </a>
                         <?php else: ?>
-                            <span style="color:#999; font-style:italic;">Not Assigned</span>
+                            <span style="color:#999; font-style:italic;">— Not Assigned —</span>
                         <?php endif; ?>
                     </div>
                 </div>
@@ -115,16 +150,14 @@ $stats = [
                 <div class="details-row">
                     <div class="details-label">Created At</div>
                     <div class="details-value">
-                        <i class="fa-regular fa-calendar" style="color:#aaa; margin-right:5px;"></i>
-                        <?= date('d M Y', strtotime($dept['created_at'])) ?>
+                        <i class="fa-regular fa-calendar"></i> <?= date('d M Y', strtotime($dept['created_at'])) ?>
                     </div>
                 </div>
 
                 <div class="details-row">
                     <div class="details-label">Last Updated</div>
                     <div class="details-value">
-                        <i class="fa-solid fa-clock-rotate-left" style="color:#aaa; margin-right:5px;"></i>
-                        <?= date('d M Y, h:i A', strtotime($dept['updated_at'])) ?>
+                        <i class="fa-solid fa-clock-rotate-left"></i> <?= date('d M Y, h:i A', strtotime($dept['updated_at'])) ?>
                     </div>
                 </div>
 
@@ -133,13 +166,17 @@ $stats = [
             <hr class="divider">
 
             <div class="details-actions">
-                <a href="edit.php?id=<?= $dept['id'] ?>" class="btn btn-edit">
-                    <i class="fa-solid fa-pen-to-square"></i> Edit Details
-                </a>
+                <?php if (Auth::can('sys_dept_edit')): ?>
+                    <a href="edit.php?id=<?= $dept['id'] ?>" class="btn btn-edit">
+                        <i class="fa-solid fa-pen-to-square"></i> Edit Details
+                    </a>
+                <?php endif; ?>
                 
-                <button class="btn btn-delete" onclick="deleteDepartment(<?= $dept['id'] ?>)">
-                    <i class="fa-solid fa-trash-can"></i> Delete Department
-                </button>
+                <?php if (Auth::can('sys_dept_delete')): ?>
+                    <button class="btn btn-delete" onclick="deleteDepartment(<?= $dept['id'] ?>)">
+                        <i class="fa-solid fa-trash-can"></i> Archive Department
+                    </button>
+                <?php endif; ?>
             </div>
 
         </div>

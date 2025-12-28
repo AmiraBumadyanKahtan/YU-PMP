@@ -1,7 +1,8 @@
 <?php
+// modules/operational_projects/project_kpis.php
 
 // =========================================================
-// 4. KPI MANAGEMENT (WITH REMINDERS)
+// 4. KPI MANAGEMENT (WITH REMINDERS & NOTIFICATIONS)
 // =========================================================
 
 /**
@@ -23,9 +24,8 @@ function getProjectKPIs($project_id) {
 }
 
 /**
- * إنشاء مؤشر جديد + إضافة تذكير (Todo)
+ * إنشاء مؤشر جديد + إضافة تذكير (Todo) + إشعار للمالك
  */
-// استبدل دالة createKPI القديمة بهذه:
 function createKPI($data) {
     $db = Database::getInstance()->pdo();
     
@@ -37,7 +37,6 @@ function createKPI($data) {
         (:name, :desc, :target, :base, :base, :unit, :freq, :source,
          'project', :pid, 1, :owner, NOW(), NOW())
     ");
-    // ملاحظة: جعلنا القيمة الحالية تبدأ من الـ baseline
     
     if ($stmt->execute([
         ':name'    => $data['name'],
@@ -46,28 +45,42 @@ function createKPI($data) {
         ':base'    => $data['baseline_value'] ?? 0,
         ':unit'    => $data['unit'],
         ':freq'    => $data['frequency'],
-        ':source'  => $data['data_source'] ?? '', // الحقل الجديد
+        ':source'  => $data['data_source'] ?? '',
         ':pid'     => $data['project_id'],
         ':owner'   => $data['owner_id']
     ])) {
         $kpiId = $db->lastInsertId();
+        
+        // 1. جدولة التذكير الدوري (Todo)
         scheduleKPIReminder($kpiId, $data['owner_id'], $data['name'], $data['frequency']);
+
+        // 2. إشعار للمالك الجديد
+        if (function_exists('sendProjectNotification')) {
+            sendProjectNotification(
+                $data['owner_id'],
+                "New KPI Assigned: " . $data['name'],
+                "You are now the owner of this KPI. Please ensure regular updates.",
+                "kpi_view", 
+                $data['project_id']
+            );
+        }
+
         return ['ok' => true];
     }
     return ['ok' => false, 'error' => 'Database error'];
 }
 
 /**
- * تحديث قراءة المؤشر + تحديث الحالة + تجديد التذكير
+ * تحديث قراءة المؤشر + تحديث الحالة + تجديد التذكير + إشعار المدير
  */
-function updateKPIReading($kpi_id, $new_value, $note = "") {
+function updateKPIReading($kpi_id, $new_value) {
     $db = Database::getInstance()->pdo();
     
-    // جلب البيانات القديمة لحساب الحالة
+    // جلب البيانات القديمة
     $kpi = $db->query("SELECT * FROM kpis WHERE id = $kpi_id")->fetch();
-    
+    if (!$kpi) return ['ok' => false, 'error' => 'KPI Not Found'];
+
     // حساب الحالة تلقائياً
-    // 4=Achieved, 1=On Track, 2=At Risk, 3=Needs Work
     $status_id = 1; // Default On Track
     $target = $kpi['target_value'];
     
@@ -83,11 +96,24 @@ function updateKPIReading($kpi_id, $new_value, $note = "") {
     $upd = $db->prepare("UPDATE kpis SET current_value = ?, status_id = ?, last_updated = NOW(), updated_at = NOW() WHERE id = ?");
     $upd->execute([$new_value, $status_id, $kpi_id]);
 
-    // --- تجديد التذكير (Todo) ---
-    // نقوم بإغلاق التذكيرات القديمة لهذا الـ KPI وننشئ واحداً جديداً للموعد القادم
-    $db->prepare("UPDATE user_todos SET is_completed = 1 WHERE related_entity_type = 'kpi' AND related_entity_id = ?")->execute([$kpi_id]);
-    
+    // --- تجديد التذكير (Todo) للمالك ---
+    $db->prepare("UPDATE user_todos SET is_completed = 1 WHERE related_entity_type = 'kpi_view_direct' AND related_entity_id = ?")->execute([$kpi_id]);
     scheduleKPIReminder($kpi_id, $kpi['owner_id'], $kpi['name'], $kpi['frequency']);
+
+    // --- إشعار لمدير المشروع بالتحديث ---
+    $proj = $db->query("SELECT manager_id FROM operational_projects WHERE id = " . $kpi['parent_id'])->fetch();
+    
+    if ($proj && $proj['manager_id'] != $_SESSION['user_id']) { 
+        if (function_exists('sendProjectNotification')) {
+            sendProjectNotification(
+                $proj['manager_id'],
+                "KPI Updated: " . $kpi['name'],
+                "New reading: $new_value {$kpi['unit']} (Target: $target).",
+                "kpi_view",
+                $kpi['parent_id']
+            );
+        }
+    }
 
     return ['ok' => true];
 }
@@ -96,9 +122,16 @@ function updateKPIReading($kpi_id, $new_value, $note = "") {
  * دالة مساعدة لجدولة التذكير
  */
 function scheduleKPIReminder($kpiId, $userId, $kpiName, $frequency) {
-    require_once __DIR__ . '/../../modules/todos/todo_functions.php';
+    // التأكد من المسار الصحيح لملف التودو
+    if (file_exists(__DIR__ . '/../../todos/todo_functions.php')) {
+        require_once __DIR__ . '/../../todos/todo_functions.php';
+    } elseif (file_exists('../../modules/todos/todo_functions.php')) {
+        require_once '../../modules/todos/todo_functions.php';
+    } else {
+        return; // الملف غير موجود، تخطي
+    }
     
-    $daysToAdd = 7; // Default Weekly
+    $daysToAdd = 7; 
     if ($frequency == 'daily') $daysToAdd = 1;
     if ($frequency == 'monthly') $daysToAdd = 30;
     if ($frequency == 'quarterly') $daysToAdd = 90;
@@ -109,7 +142,7 @@ function scheduleKPIReminder($kpiId, $userId, $kpiName, $frequency) {
         $userId,
         "Update KPI: $kpiName",
         "It's time to update the reading for this KPI ($frequency).",
-        "kpi", // تأكد من التعامل مع هذا النوع في صفحة التودو إذا أردت رابطاً
+        "kpi_view_direct", 
         $kpiId,
         $dueDate
     );

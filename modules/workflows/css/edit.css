@@ -1,0 +1,94 @@
+        .page-wrapper {
+    padding: 30px;
+    font-family: "Varela Round", sans-serif;
+  font-weight: 400;
+  font-style: normal;
+}
+
+/* Page Header */
+.page-header-flex {
+    font-family: "Varela Round", sans-serif;
+  font-weight: 400;
+  font-style: normal;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 18px;
+}
+
+.page-title {
+    font-family: "Varela Round", sans-serif;
+  font-weight: 400;
+  font-style: normal;
+    font-size: 2rem;
+    font-weight: 700;
+    color: #ff8c00;
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+.page-title i { color: #ff8c00; }
+
+/* Card Style */
+        .content-card { 
+            background: #fff; padding: 25px; border-radius: 12px; margin-bottom: 25px; 
+            box-shadow: 0 4px 15px rgba(0,0,0,0.03); border: 1px solid #f0f0f0; 
+        }
+        .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #f0f0f0; padding-bottom: 15px; }
+        .card-title { font-size: 1.1rem; font-weight: 700; color: #34495e; margin: 0; }
+
+        /* Inputs */
+        .form-label { display: block; font-weight: 600; margin-bottom: 8px; color: #4a5568; font-size: 0.95rem; }
+        .form-control { 
+            width: 100%; padding: 10px 15px; border: 1px solid #e2e8f0; border-radius: 8px; 
+            font-size: 0.95rem; transition: 0.2s; box-sizing: border-box; font-family: inherit;
+        }
+        .form-control:focus { border-color: #ff8c00; outline: none; box-shadow: 0 0 0 3px rgba(255, 140, 0, 0.1); }
+
+        /* Stages List */
+        .stage-row { font-family: "Varela Round", sans-serif;
+            background: #fdfdfd; padding: 15px; border: 1px solid #eee; margin-bottom: 15px; 
+            border-radius: 30px; display: flex; gap: 15px; align-items: center; transition: 0.2s;
+        }
+        .stage-row:hover { border-color: #ddd; box-shadow: 0 2px 8px rgba(0,0,0,0.03); }
+        
+        .stage-handle { cursor: grab; color: #bdc3c7; font-size: 1.2rem; padding: 5px; }
+        .stage-inputs { flex: 1; display: grid; grid-template-columns: 2fr 1.5fr 1.5fr auto auto; gap: 15px; align-items: center; }
+        
+        .btn-remove-stage { 
+            color: #e74c3c; cursor: pointer; border: none; background: #ffebee; 
+            width: 35px; height: 35px; border-radius: 50%; display: flex; align-items: center; 
+            justify-content: center; transition: 0.2s;
+        }
+        .btn-remove-stage:hover { background: #e74c3c; color: white; }
+
+        /* Buttons */
+        .btn-primary { 
+            font-family: "Varela Round", sans-serif;
+            background: linear-gradient(135deg, #ff8c00, #e67e00); color: white; border: none; 
+            padding: 10px 25px; border-radius: 30px; font-weight: 700; cursor: pointer; 
+            box-shadow: 0 4px 10px rgba(255, 140, 0, 0.2); font-size: 0.95rem; 
+            display: inline-flex; align-items: center; gap: 8px; transition: 0.2s;
+        }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 6px 15px rgba(255, 140, 0, 0.3); }
+
+        .btn-secondary { 
+            font-family: "Varela Round", sans-serif;
+            background: #f1f2f6; color: #555; padding: 8px 15px; border-radius: 30px; 
+            text-decoration: none; font-weight: 600; font-size: 0.9rem; transition: 0.2s; display: inline-flex; align-items: center; gap: 6px;
+        }
+        .btn-secondary:hover { background: #e2e6ea; color: #ff8c00; }
+
+        .btn-add {font-family: "Varela Round", sans-serif; background: #e3f2fd; color: #3498db; border: none; padding: 8px 15px; border-radius: 30px; font-weight: 600; cursor: pointer; transition: 0.2s; }
+        .btn-add:hover { background: #3498db; color: white; }
+
+        /* Alerts */
+        .alert { font-family: "Varela Round", sans-serif;padding: 15px; border-radius: 8px; margin-bottom: 25px; display: flex; align-items: center; gap: 10px; font-weight: 500; }
+        .alert-success { background: #f0fff4; color: #276749; border: 1px solid #c6f6d5; }
+        .alert-error { background: #fff5f5; color: #c53030; border: 1px solid #fed7d7; }
+        
+        /* Checkbox */
+        .checkbox-label {font-family: "Varela Round", sans-serif; display: flex; align-items: center; gap: 8px; font-size: 0.9rem; color: #555; cursor: pointer; user-select: none; }
+        .checkbox-label input {font-family: "Varela Round", sans-serif; accent-color: #ff8c00; width: 16px; height: 16px; cursor: pointer; }
+    

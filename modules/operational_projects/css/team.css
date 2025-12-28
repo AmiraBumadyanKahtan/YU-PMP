@@ -1,45 +1,108 @@
+/* --- General Layout --- */
+        body {font-family: 'Varela Round', sans-serif; color: #2c3e50; margin: 0; }
+        .page-wrapper { padding: 2rem; max-width: 1400px; margin: 0 auto; }
 
-        /* --- Unified CSS for Header & Layout --- */
-        body { font-family: "Varela Round", sans-serif; background-color: #fcfcfc; margin: 0; }
-        .page-wrapper { padding: 2rem; }
+        /* --- Header Section --- */
+        .page-header-flex { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 30px; }
+        .page-title h3 { margin: 0; color: #1e293b; font-weight: 800; font-size: 1.5rem; letter-spacing: -0.5px; }
+        .page-title p { margin: 8px 0 0; color: #64748b; font-size: 0.95rem; }
 
-        /* The Header Card */
-        .project-header-card {
-            background: #ffffff; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.05);
-            margin-bottom: 25px; border-top: 6px solid #ff8c00; overflow: hidden;
+        /* --- Alerts --- */
+        .locked-banner { 
+            background: #fffbeb; border: 1px solid #fcd34d; color: #92400e; 
+            padding: 16px; border-radius: 12px; margin-bottom: 30px; 
+            display: flex; align-items: center; gap: 12px; font-size: 0.95rem; 
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
         }
-        .ph-top-section { padding: 30px; display: flex; justify-content: space-between; border-bottom: 1px solid #f0f0f0; }
-        .ph-code-badge { display: inline-block; background-color: #fff3e0; color: #d35400; padding: 5px 12px; border-radius: 20px; font-size: 0.85rem; font-weight: bold; margin-bottom: 10px; }
-        .ph-title { margin: 0 0 10px 0; font-size: 2.2rem; color: #2c3e50; font-weight: 700; }
-        .ph-meta-row { display: flex; gap: 25px; color: #7f8c8d; font-size: 0.95rem; align-items: center; }
-        .ph-meta-item i { color: #95a5a6; margin-right: 5px; }
 
-        /* Stats Bar */
-        .ph-stats-bar { display: flex; padding: 20px 30px; background-color: #fdfdfd; gap: 40px; align-items: center; }
-        .stat-item { display: flex; align-items: center; gap: 15px; }
-        .stat-icon-box { width: 45px; height: 45px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
-        .icon-orange { background: #fff3e0; color: #ff8c00; } /* Budget */
-        .icon-blue { background: #e3f2fd; color: #3498db; }   /* Time */
-        .icon-purple { background: #f3e5f5; color: #9b59b6; } /* Tasks */
-        .icon-red { background: #ffebee; color: #e74c3c; }    /* Risks */
-
-        .stat-info div:first-child { font-size: 0.85rem; color: #888; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
-        .stat-info div:last-child { font-size: 1.1rem; font-weight: 800; color: #2c3e50; margin-top: 2px; }
+        /* --- Add Member Box (Modern Style) --- */
+        .add-box { 
+            background: #fff; padding: 25px; border-radius: 16px; margin-bottom: 30px; 
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.03); border: 1px solid #f1f5f9;
+        }
+        .add-title { margin: 0 0 20px 0; color: #334155; font-size: 1.1rem; display: flex; align-items: center; gap: 10px; }
         
-        /* Tabs */
-        .tabs-container { margin-bottom: 25px; border-bottom: 2px solid #eee; display: flex; gap: 5px; overflow-x: auto; }
-        .tab-link { padding: 12px 20px; text-decoration: none; color: #666; font-weight: 600; border-bottom: 3px solid transparent; transition: 0.2s; white-space: nowrap; }
-        .tab-link:hover { background: #f9f9f9; }
-        .tab-link.active { color: #ff8c00; border-bottom-color: #ff8c00; background: #fff; }
-        .tab-link.locked { color: #ccc; cursor: not-allowed; }
-
-        /* Page Specific */
-        .add-box { background: #fff; padding: 25px; border-radius: 12px; margin-bottom: 30px; border: 1px solid #eee; }
-        .btn-primary { background: #ff8c00; color: #fff; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: bold; }
+        .add-form { display: flex; gap: 15px; align-items: center; }
         
-        .team-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
-        .member-card { background: #fff; border-radius: 12px; padding: 20px; border: 1px solid #f0f0f0; display: flex; align-items: center; gap: 15px; position: relative; transition:0.2s; }
-        .member-card:hover { transform: translateY(-3px); box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
-        .member-avatar { width: 55px; height: 55px; border-radius: 50%; object-fit: cover; }
-        .role-badge { display: inline-block; background: #e3f2fd; color: #1976d2; padding: 3px 10px; border-radius: 15px; font-size: 0.75rem; font-weight: bold; }
-        .role-pm { background: #fff3e0; color: #f57c00; }
+        .form-select { 
+            flex: 1; padding: 12px 15px; border: 1px solid #e2e8f0; border-radius: 10px; 
+            font-size: 0.95rem; color: #334155; background: #f8fafc; transition: all 0.2s;
+            font-family: 'Varela Round', sans-serif;
+        }
+        .form-select:focus { border-color: #ff8c00; background: #fff; outline: none; box-shadow: 0 0 0 3px rgba(255, 140, 0, 0.1); }
+
+        /* --- Team Grid --- */
+        .team-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 24px; }
+        
+        .member-card { 
+            background: #fff; border-radius: 16px; padding: 24px; 
+            border: 1px solid #f1f5f9; display: flex; align-items: center; gap: 20px; 
+            position: relative; transition: all 0.2s ease;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02);
+        }
+        .member-card:hover { transform: translateY(-3px); box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.05); border-color: #e2e8f0; }
+        
+        /* Special Border for PM */
+        .card-pm { border-left: 5px solid #ff8c00; }
+
+        .member-avatar { 
+            width: 64px; height: 64px; border-radius: 50%; object-fit: cover; 
+            border: 3px solid #fff; box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        
+        .member-info h4 { margin: 0; color: #1e293b; font-size: 1.1rem; font-weight: 700; }
+        .member-info p { margin: 4px 0 10px; color: #94a3b8; font-size: 0.85rem; }
+        
+        /* Badges */
+        .role-badge { 
+            display: inline-flex; align-items: center; padding: 4px 12px; border-radius: 20px; 
+            font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;
+        }
+        .role-pm-badge { background: #fff7ed; color: #ea580c; border: 1px solid #ffedd5; }
+        .role-member-badge { background: #eff6ff; color: #2563eb; border: 1px solid #dbeafe; }
+
+        /* Action Buttons */
+        .action-btns { position: absolute; top: 15px; right: 15px; display: flex; gap: 8px; opacity: 0; transition: 0.2s; }
+        .member-card:hover .action-btns { opacity: 1; }
+        
+        .btn-icon { 
+            width: 32px; height: 32px; border-radius: 8px; border: none; 
+            display: flex; align-items: center; justify-content: center; cursor: pointer; 
+            font-size: 0.9rem; transition: 0.2s; background: #f1f5f9; color: #64748b;
+        }
+        .btn-icon:hover { background: #e2e8f0; color: #334155; }
+        .btn-del:hover { background: #fee2e2; color: #ef4444; }
+
+        /* Buttons */
+        .btn-primary-pill { 
+            font-family: "Varela Round", sans-serif;
+            background: linear-gradient(135deg, #ff8c00, #e67e00);
+            color: #fff; border: none; padding: 12px 28px; border-radius: 50px; 
+            font-weight: 700; cursor: pointer; transition: all 0.3s ease; 
+            display: inline-flex; align-items: center; gap: 10px; 
+            box-shadow: 0 4px 12px rgba(234, 88, 12, 0.3); font-size: 0.95rem; text-decoration: none;
+        }
+        .btn-primary-pill:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(255, 140, 0, 0.4); }
+
+        /* --- Modal Styling (Consistent with Resources Page) --- */
+        .modal { display: none; position: fixed; z-index: 2000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); }
+        .modal-content { 
+            background-color: #fff; margin: 10% auto; padding: 0; border-radius: 16px; 
+            width: 450px; max-width: 90%; 
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); 
+            animation: modalPop 0.3s ease-out; overflow: hidden;
+        }
+        @keyframes modalPop { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
+
+        .modal-header { padding: 20px 25px; border-bottom: 1px solid #f1f5f9; display: flex; justify-content: space-between; align-items: center; background: #fff; }
+        .modal-header h3 { margin: 0; color: #1e293b; font-size: 1.2rem; }
+        .close { font-size: 1.5rem; color: #cbd5e0; cursor: pointer; }
+        .close:hover { color: #ef4444; }
+
+        .modal-body { padding: 25px; }
+        
+        .modal-footer { padding: 20px 25px; border-top: 1px solid #f1f5f9; display: flex; justify-content: flex-end; gap: 10px; background: #fff; }
+        
+        .btn-cancel { background: #f1f5f9; color: #64748b; padding: 10px 20px; border-radius: 8px; font-weight: 600; border: none; cursor: pointer; }
+        .btn-save { background: #ff8c00; color: #fff; padding: 10px 24px; border-radius: 8px; font-weight: 600; border: none; cursor: pointer; }
+    

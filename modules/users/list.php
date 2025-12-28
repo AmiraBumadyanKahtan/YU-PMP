@@ -3,9 +3,10 @@
 
 require_once "../../core/config.php";
 require_once "../../core/auth.php";
-require_once 'user_functions.php'; // تأكد أن هذا الملف في نفس المجلد
+require_once 'user_functions.php';
 
-if (!Auth::can('manage_users')) {
+// ✅ التعديل: استخدام صلاحية العرض المحددة
+if (!Auth::can('sys_user_view')) {
     echo json_encode(['status' => 'error', 'message' => 'Access denied']);
     exit;
 }
@@ -23,7 +24,6 @@ $users = getFilteredUsers($filters);
 // Get dropdown data
 $db = Database::getInstance()->pdo();
 
-// تعديل: الجدول اسمه roles وليس system_roles
 $roles = $db->query("SELECT id, role_name FROM roles ORDER BY role_name")->fetchAll();
 $departments = $db->query("SELECT id, name FROM departments WHERE is_deleted = 0 ORDER BY name")->fetchAll();
 
@@ -93,9 +93,11 @@ $departments = $db->query("SELECT id, name FROM departments WHERE is_deleted = 0
                 <i class="fa-solid fa-users"></i> Users
             </h1>
 
-            <a href="create.php" class="btn-primary action-btn">
-                + Add User
-            </a>
+            <?php if (Auth::can('sys_user_create')): ?>
+                <a href="create.php" class="btn-primary">
+                    + Add User
+                </a>
+            <?php endif; ?>
         </div>
 
         <form method="get" class="filter-bar" style="margin-bottom: 20px; display:flex; gap:15px; align-items:center;">
@@ -138,7 +140,8 @@ $departments = $db->query("SELECT id, name FROM departments WHERE is_deleted = 0
                 <i class="fa-solid fa-filter"></i> Apply
             </button>
 
-            <a href="list.php" class="btn-reset">Reset</a>
+            
+             <a href="list.php" class="btn-reset"><i class="fa-solid fa-rotate-right"></i> Reset</a>
         </form>
 
 
@@ -201,13 +204,19 @@ $departments = $db->query("SELECT id, name FROM departments WHERE is_deleted = 0
                                 <a href="view.php?id=<?= $u['id'] ?>" class="action-btn btn-view">
                                     <i class="fa-solid fa-eye"></i>
                                 </a>
-                                <a href="edit.php?id=<?= $u['id'] ?>" class="action-btn btn-edit">
-                                     <i class="fa-solid fa-pen"></i>
-                                </a>
-                                <a href="#" class="action-btn btn-delete"
-                                   onclick="deleteUser(<?= $u['id'] ?>)">
-                                    <i class="fa-solid fa-trash"></i>
-                                </a>
+                                
+                                <?php if (Auth::can('sys_user_edit')): ?>
+                                    <a href="edit.php?id=<?= $u['id'] ?>" class="action-btn btn-edit">
+                                         <i class="fa-solid fa-pen"></i>
+                                    </a>
+                                <?php endif; ?>
+
+                                <?php if (Auth::can('sys_user_delete')): ?>
+                                    <a href="#" class="action-btn btn-delete"
+                                       onclick="deleteUser(<?= $u['id'] ?>)">
+                                        <i class="fa-solid fa-trash"></i>
+                                    </a>
+                                <?php endif; ?>
                             </td>
                         </tr>
                     <?php endforeach; ?>

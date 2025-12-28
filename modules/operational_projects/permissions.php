@@ -9,6 +9,7 @@ require_once "php/permissions_BE.php";
     <title>Permissions - <?= htmlspecialchars($project['name']) ?></title>
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/layout.css">
     <link rel="stylesheet" href="css/permissions.css">
+    <link rel="icon" type="image/png" href="<?php echo BASE_URL; ?>assets/images/favicon-32x32.png">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <link href="https://fonts.googleapis.com/css2?family=Varela+Round&display=swap" rel="stylesheet">
@@ -23,70 +24,103 @@ require_once "php/permissions_BE.php";
 
     <?php include "project_header_inc.php"; ?>
 
-    <div class="content-card">
-        <div class="card-header">
-            <div style="width:40px; height:40px; background:#fff3e0; border-radius:10px; display:flex; align-items:center; justify-content:center; color:#ff8c00; font-size:1.2rem;">
-                <i class="fa-solid fa-user-shield"></i>
-            </div>
+    <?php if ($isLockedStatus): ?>
+        <div class="locked-banner">
+            <i class="fa-solid fa-lock fa-lg"></i>
             <div>
-                <h3>Access Control Matrix</h3>
-                <p>Manage permissions for team members within this project context.</p>
+                Project is currently <strong><?= ($project['status_id'] == 4 ? 'Rejected' : ($project['status_id'] == 8  ? 'Completed' : 'Locked')) ?></strong>.
+                Modifications are disabled.
             </div>
         </div>
-        
+    <?php endif; ?>
+
+    <div class="content-card">
+        <div>
+            <h3 ><i class="fa-solid fa-user-shield" style="color:#f39c12;"></i> Access Control Matrix</h3>
+            <?php if($canEdit): ?>
+                <span style="font-size:0.85rem; color:#666;"><i class="fa-solid fa-circle-info"></i> Hover over cells to modify permissions.</span>
+            <?php endif; ?>
+        </div>
+
         <div class="perm-table-wrapper">
             <table class="perm-table">
                 <thead>
                     <tr>
                         <th>Team Member</th>
                         <?php foreach ($allPerms as $perm): ?>
-                            <th title="<?= $perm['description'] ?>">
-                                <?= str_replace(['manage_project_', 'view_project_', 'edit_'], '', $perm['permission_key']) ?>
+                            <th title="<?= htmlspecialchars($perm['description']) ?>">
+                                <span class="module-header"><?= str_replace(['project_', 'proj_'], '', $perm['module']) ?></span>
+                                <span class="perm-header-txt"><?= getReadableName($perm['permission_key']) ?></span>
                             </th>
                         <?php endforeach; ?>
                     </tr>
                 </thead>
                 <tbody>
                     <?php foreach ($teamMembers as $member): ?>
+                        <?php 
+                            // تخطي المدير من الجدول لأنه يملك كل الصلاحيات ولا يجب تعديله
+                            // أو عرضه ولكن تعطيل الأزرار (سنعرضه ولكن نعطل الأزرار للمدير)
+                            $isRowLocked = ($member['user_id'] == $project['manager_id']);
+                        ?>
                         <tr>
                             <td>
-                                <span class="member-name"><?= htmlspecialchars($member['full_name_en']) ?></span>
-                                <span class="role-badge"><?= htmlspecialchars($member['role_name']) ?></span>
+                                <div class="member-info">
+                                    <span class="member-name">
+                                        <?= htmlspecialchars($member['full_name_en']) ?>
+                                        <?php if($isRowLocked) echo '<i class="fa-solid fa-crown" style="color:#f1c40f; font-size:0.8rem; margin-left:5px;" title="Owner"></i>'; ?>
+                                    </span>
+                                    <span class="member-role"><?= htmlspecialchars($member['role_name']) ?></span>
+                                </div>
                             </td>
+                            
                             <?php foreach ($allPerms as $perm): ?>
                                 <?php 
-                                    $ovVal = $overrides[$member['user_id']][$perm['id']] ?? null;
-                                    $roleHas = in_array($perm['id'], $roleDefaults[$member['role_id']] ?? []);
+                                    // 1. هل الصلاحية موجودة في الدور الافتراضي؟
+                                    $roleHasPerm = in_array($perm['id'], $roleDefaults[$member['role_id']] ?? []);
                                     
-                                    // الحالة النهائية
-                                    $isAllowed = ($ovVal === 1) || ($ovVal === null && $roleHas);
+                                    // 2. هل يوجد استثناء خاص؟ (1=منح، 0=منع، null=لا يوجد)
+                                    $override = $overrides[$member['user_id']][$perm['id']] ?? null;
+
+                                    // 3. تحديد الحالة النهائية والايقونة
+                                    $finalStatus = ($override === 1) ? true : (($override === 0) ? false : $roleHasPerm);
                                     
-                                    // تحديد الستايل
-                                    $iconClass = $isAllowed ? 'fa-circle-check' : 'fa-circle-xmark';
-                                    $styleClass = $isAllowed ? 'st-allow' : 'st-deny';
-                                    
-                                    // إذا كان هناك استثناء (Override)
-                                    if ($ovVal === 1) $styleClass = 'st-force-allow';
-                                    if ($ovVal === 0) $styleClass = 'st-force-deny';
+                                    // تحديد الكلاس للأيقونة
+                                    if ($override === 1) {
+                                        $iconClass = 'fa-circle-check st-forced-allow'; // منح خاص
+                                    } elseif ($override === 0) {
+                                        $iconClass = 'fa-circle-xmark st-forced-deny'; // منع خاص
+                                    } elseif ($roleHasPerm) {
+                                        $iconClass = 'fa-check st-allowed'; // مسموح من الدور
+                                    } else {
+                                        $iconClass = 'fa-xmark st-denied'; // ممنوع من الدور
+                                    }
                                 ?>
-                                <td>
-                                    <i class="fa-regular <?= $iconClass ?> status-icon <?= $styleClass ?>"></i>
+                                <td class="perm-cell">
+                                    <i class="fa-solid <?= $iconClass ?> st-icon"></i>
                                     
-                                    <form method="POST" style="display:flex; justify-content:center;">
-                                        <input type="hidden" name="set_user_perm" value="1">
-                                        <input type="hidden" name="user_id" value="<?= $member['user_id'] ?>">
-                                        <input type="hidden" name="permission_id" value="<?= $perm['id'] ?>">
-                                        
-                                        <button type="submit" name="action" value="grant" title="Force Allow" class="ctrl-btn btn-grant <?= $ovVal === 1 ? 'active' : '' ?>">
-                                            <i class="fa-solid fa-check"></i>
-                                        </button>
-                                        <button type="submit" name="action" value="deny" title="Force Deny" class="ctrl-btn btn-deny <?= $ovVal === 0 ? 'active' : '' ?>">
-                                            <i class="fa-solid fa-xmark"></i>
-                                        </button>
-                                        <button type="submit" name="action" value="reset" title="Reset to Role Default" class="ctrl-btn">
-                                            <i class="fa-solid fa-rotate-left"></i>
-                                        </button>
-                                    </form>
+                                    <?php if($canEdit && !$isRowLocked): ?>
+                                    <div class="perm-controls">
+                                        <form method="POST" style="display:contents;">
+                                            <input type="hidden" name="set_user_perm" value="1">
+                                            <input type="hidden" name="user_id" value="<?= $member['user_id'] ?>">
+                                            <input type="hidden" name="permission_id" value="<?= $perm['id'] ?>">
+                                            
+                                            <button type="submit" name="action" value="grant" class="btn-perm btn-grant" title="Force Allow">
+                                                <i class="fa-solid fa-check"></i>
+                                            </button>
+                                            
+                                            <button type="submit" name="action" value="deny" class="btn-perm btn-deny" title="Force Deny">
+                                                <i class="fa-solid fa-xmark"></i>
+                                            </button>
+                                            
+                                            <?php if($override !== null): ?>
+                                            <button type="submit" name="action" value="reset" class="btn-perm btn-reset" title="Reset to Default">
+                                                <i class="fa-solid fa-rotate-left"></i>
+                                            </button>
+                                            <?php endif; ?>
+                                        </form>
+                                    </div>
+                                    <?php endif; ?>
                                 </td>
                             <?php endforeach; ?>
                         </tr>
@@ -94,14 +128,13 @@ require_once "php/permissions_BE.php";
                 </tbody>
             </table>
         </div>
-        
-        <div class="legend-box">
-            <div class="legend-item"><i class="fa-regular fa-circle-check st-allow"></i> Role Allowed</div>
-            <div class="legend-item"><i class="fa-regular fa-circle-check st-force-allow"></i> Forced Allow</div>
-            <div class="legend-item"><i class="fa-regular fa-circle-xmark st-deny"></i> Role Denied</div>
-            <div class="legend-item"><i class="fa-regular fa-circle-xmark st-force-deny"></i> Forced Deny</div>
-        </div>
 
+        <div class="legend-box">
+            <div class="legend-item"><i class="fa-solid fa-check st-allowed"></i> Allowed (Role Default)</div>
+            <div class="legend-item"><i class="fa-solid fa-circle-check st-forced-allow"></i> Specifically Granted</div>
+            <div class="legend-item"><i class="fa-solid fa-xmark st-denied"></i> Denied (Role Default)</div>
+            <div class="legend-item"><i class="fa-solid fa-circle-xmark st-forced-deny"></i> Specifically Denied</div>
+        </div>
     </div>
 
 </div>
@@ -110,13 +143,15 @@ require_once "php/permissions_BE.php";
 <?php if(isset($_GET['msg'])): ?>
     <script>
         const Toast = Swal.mixin({
-            toast: true, position: 'top-end', showConfirmButton: false, timer: 2000,
+            toast: true, position: 'top-end', showConfirmButton: false, timer: 3000,
             timerProgressBar: true, didOpen: (toast) => {
                 toast.addEventListener('mouseenter', Swal.stopTimer);
                 toast.addEventListener('mouseleave', Swal.resumeTimer);
             }
         });
-        Toast.fire({icon: 'success', title: 'Permission Updated'});
+        const msg = "<?= $_GET['msg'] ?>";
+        if(msg == 'updated') Toast.fire({icon: 'success', title: 'Permission Updated'});
+        if(msg == 'error_owner') Swal.fire({icon: 'error', title: 'Action Denied', text: 'You cannot change permissions for the Project Manager.'});
     </script>
 <?php endif; ?>
 

@@ -5,7 +5,7 @@ require_once "../../core/config.php";
 require_once "../../core/auth.php";
 require_once "branch_functions.php";
 
-if (!Auth::can('manage_departments')) die("Access Denied");
+if (!Auth::can('sys_dept_branches')) die("Access Denied");
 
 $id = $_GET['id'] ?? null;
 $branch = $id ? getBranchById($id) : ['branch_code'=>'', 'branch_name'=>'', 'city'=>'', 'is_active'=>1];
@@ -74,7 +74,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         .btn-save { 
             font-family: "Varela Round", sans-serif;
             width: 100%; padding: 12px; background: linear-gradient(135deg, #ff8c00, #e67e00); 
-            color: #fff; border: none; border-radius: 8px; font-size: 1rem; font-weight: 700; 
+            color: #fff; border: none; border-radius: 30px; font-size: 1rem; font-weight: 700; 
             cursor: pointer; transition: transform 0.2s, box-shadow 0.2s;
             box-shadow: 0 4px 10px rgba(255, 140, 0, 0.2);
             display: flex; justify-content: center; align-items: center; gap: 8px;
@@ -82,7 +82,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         .btn-save:hover { transform: translateY(-2px); box-shadow: 0 6px 15px rgba(255, 140, 0, 0.3); }
 
         .btn-secondary { 
-            background: #f1f2f6; color: #555; padding: 10px 20px; border-radius: 8px; 
+            background: #f1f2f6; color: #555; padding: 10px 20px; border-radius: 30px; 
             text-decoration: none; font-weight: 600; transition: 0.2s; display: inline-flex; align-items: center; gap: 6px;
         }
         .btn-secondary:hover { background: #e2e6ea; color: #ff8c00; }

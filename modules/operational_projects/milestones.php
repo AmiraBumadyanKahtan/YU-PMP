@@ -1,151 +1,6 @@
 <?php
 // modules/operational_projects/milestones.php
-
-require_once "../../core/config.php";
-require_once "../../core/auth.php";
-require_once "project_functions.php";
-
-if (file_exists("../project_roles/functions.php")) { require_once "../project_roles/functions.php"; }
-
-if (!Auth::check()) die("Access Denied");
-
-$id = $_GET['id'] ?? 0;
-$project = getProjectById($id);
-if (!$project) die("Project not found");
-
-// --- الصلاحيات ---
-$isManager = ($project['manager_id'] == $_SESSION['user_id']);
-$isSuperAdmin = in_array($_SESSION['role_key'], ['super_admin', 'ceo', 'strategy_office']);
-
-$canManage = ($isManager || $isSuperAdmin || userCanInProject($id, 'manage_project_tasks'));
-$canEditAssigned = ($isManager || $isSuperAdmin || userCanInProject($id, 'edit_assigned_tasks'));
-
-$isApproved = ($project['status_id'] == 5); 
-
-$db = Database::getInstance()->pdo();
-
-// ---------------------------------------------------------
-// معالجة النماذج (POST Actions)
-// ---------------------------------------------------------
-
-// أ) حذف المهمة (للمدراء فقط)
-if (isset($_GET['delete_task']) && $canManage) {
-    $taskId = $_GET['delete_task'];
-    $msId = $db->query("SELECT milestone_id FROM project_tasks WHERE id=$taskId")->fetchColumn();
-    
-    $db->prepare("UPDATE project_tasks SET is_deleted=1 WHERE id=?")->execute([$taskId]);
-    
-    if($msId && function_exists('recalculateMilestone')) {
-        recalculateMilestone($msId);
-    } else {
-        recalculateProject($id); // إذا كانت عامة
-    }
-    header("Location: milestones.php?id=$id&msg=deleted");
-    exit;
-}
-
-// ب) حفظ المهمة (إضافة / تعديل)
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_task'])) {
-    
-    $taskId = $_POST['task_id'] ?? 0;
-    
-    // 1. إذا كان المدير (Full Update/Create)
-    if ($canManage) {
-        $progress = 0;
-        $status = $_POST['status_id'] ?? 1;
-        if ($status == 3) $progress = 100;
-        elseif ($status == 2) $progress = 50;
-
-        $milestoneId = !empty($_POST['milestone_id']) ? $_POST['milestone_id'] : null;
-
-        $data = [
-            'project_id' => $id,
-            'milestone_id' => $milestoneId,
-            'title' => $_POST['title'],
-            'description' => $_POST['description'] ?? '',
-            'assigned_to' => !empty($_POST['assigned_to']) ? $_POST['assigned_to'] : null,
-            'start_date' => !empty($_POST['start_date']) ? $_POST['start_date'] : null,
-            'due_date' => $_POST['due_date'],
-            'priority_id' => $_POST['priority_id'] ?? 2,
-            'weight' => $_POST['weight'] ?? 1,
-            'cost_estimate' => $_POST['cost_estimate'] ?? 0,
-            'status_id' => $status,
-            'progress' => $progress,
-            'cost_spent' => $_POST['cost_spent'] ?? 0
-        ];
-        
-        $res = ['ok' => false];
-        if (!empty($taskId)) {
-            $res = updateTask($taskId, $data);
-        } else {
-            $res = createTask($data);
-        }
-
-        if ($res['ok']) { header("Location: milestones.php?id=$id&msg=task_saved"); exit; }
-        else { $error = $res['error']; }
-    }
-    
-    // 2. إذا كان موظف (Limited Update)
-    elseif ($taskId && $canEditAssigned) {
-        // نتحقق أن المهمة له
-        $assignedTo = $db->query("SELECT assigned_to FROM project_tasks WHERE id=$taskId")->fetchColumn();
-        
-        if ($assignedTo == $_SESSION['user_id']) {
-            $statusId = $_POST['status_id'];
-            $costSpent = $_POST['cost_spent'];
-            // النسبة تحسب تلقائياً حسب الحالة لتوحيد المنطق (أو يمكن أخذها من المدخلات إذا أردت)
-            $progress = 0;
-            if ($statusId == 3) $progress = 100;
-            elseif ($statusId == 2) $progress = 50;
-
-            $res = updateTaskProgressOnly($taskId, $statusId, $progress, $costSpent);
-            
-            if ($res['ok']) { header("Location: milestones.php?id=$id&msg=task_saved"); exit; }
-            else { $error = $res['error']; }
-        } else {
-            $error = "Access Denied: This task is not assigned to you.";
-        }
-    } else {
-        $error = "Access Denied.";
-    }
-}
-
-// ج) إضافة مرحلة (للمدراء فقط)
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_milestone']) && $canManage) {
-    $newStart = $_POST['start_date'];
-    $newDue = $_POST['due_date'];
-
-    $checkOverlap = $db->prepare("SELECT COUNT(*) FROM project_milestones WHERE project_id = ? AND is_deleted = 0 AND (start_date <= ? AND due_date >= ?)");
-    $checkOverlap->execute([$id, $newDue, $newStart]);
-    
-    if ($checkOverlap->fetchColumn() > 0) {
-        $error = "Date Conflict: Dates overlap with an existing milestone.";
-    } else {
-        $data = [
-            'project_id' => $id, 'name' => $_POST['name'], 'description' => $_POST['description'],
-            'start_date' => $newStart, 'due_date' => $newDue, 'cost_amount' => $_POST['cost_amount'] ?? 0
-        ];
-        $result = createMilestone($data);
-        if ($result['ok']) { header("Location: milestones.php?id=$id&msg=milestone_added"); exit; }
-        else { $error = $result['error']; }
-    }
-}
-
-// جلب البيانات
-$milestones = getProjectMilestones($id);
-$teamMembers = getProjectTeam($id); 
-
-$generalTasks = $db->prepare("
-    SELECT t.*, u.full_name_en as assignee_name, s.name as status_name 
-    FROM project_tasks t
-    LEFT JOIN users u ON u.id = t.assigned_to
-    LEFT JOIN task_statuses s ON s.id = t.status_id
-    WHERE t.project_id = ? AND t.milestone_id IS NULL AND t.is_deleted = 0
-    ORDER BY t.due_date ASC
-");
-$generalTasks->execute([$id]);
-$generalTasks = $generalTasks->fetchAll();
-
+require_once "php/milestones_BE.php";
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -158,11 +13,6 @@ $generalTasks = $generalTasks->fetchAll();
     <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <link href="https://fonts.googleapis.com/css2?family=Varela+Round&display=swap" rel="stylesheet">
-
-    <style>
-        /* إضافة ستايل لإخفاء العناصر غير المسموح للموظف بتعديلها */
-        .readonly-view { pointer-events: none; background-color: #f9f9f9; opacity: 0.7; }
-    </style>
 </head>
 <body>
 
@@ -174,188 +24,207 @@ $generalTasks = $generalTasks->fetchAll();
 
     <?php if (file_exists("project_header_inc.php")) include "project_header_inc.php"; ?>
 
+    <?php if (!$isLockedStatus): ?>
+        <div class="alert-box alert-locked">
+            <i class="fa-solid fa-lock"></i> 
+            <div>Project is currently <strong>Locked</strong>. New requests are disabled.</div>
+        </div>
+    <?php endif; ?>
+
+    <?php if (!$hasMilestones && $isLockedStatus): ?>
+        <div class="alert-box alert-mandatory">
+            <i class="fa-solid fa-triangle-exclamation"></i>
+            <div><strong>Action Required:</strong> Creating at least one milestone is mandatory.</div>
+        </div>
+    <?php endif; ?>
+
     <?php if (isset($error)): ?>
-        <div style="background:#fee2e2; color:#b91c1c; padding:15px; border-radius:8px; margin-bottom:20px; border:1px solid #fca5a5;">
-            <i class="fa-solid fa-circle-exclamation"></i> <?= $error ?>
-        </div>
+        <div class="alert-box alert-error"><i class="fa-solid fa-circle-exclamation"></i> <?= $error ?></div>
     <?php endif; ?>
 
-    <?php if ($canManage): ?>
-    <div style="margin-bottom: 25px; display:flex; justify-content:flex-end; gap:10px;">
-        <button onclick="openTaskModal('', true)" class="btn-primary" style="background:#3498db;">
-            <i class="fa-solid fa-list-check"></i> Add General Task
-        </button>
-        <button onclick="openModal('milestoneModal')" class="btn-primary">
-            <i class="fa-solid fa-flag"></i> New Milestone
-        </button>
-    </div>
-    <?php endif; ?>
-
-    <div class="milestone-card ms-general">
-        <div class="milestone-header" onclick="toggleBody('ms-general')">
-            <div style="display:flex; align-items:center; gap:15px;">
-                <i class="fa-solid fa-chevron-right" id="icon-ms-general" style="color:#aaa;"></i>
-                <div>
-                    <div style="font-size:1.1rem; font-weight:700; color:#2c3e50;">
-                        <i class="fa-solid fa-layer-group" style="color:#3498db;"></i> General Project Tasks
-                    </div>
-                    <div style="font-size:0.85rem; color:#888; margin-top:4px;">Tasks not linked to a specific milestone</div>
-                </div>
-            </div>
-            <div style="text-align:right; font-weight:bold; color:#3498db;">
-                <?= count($generalTasks) ?> Tasks
-            </div>
+    <div style="margin-bottom: 30px; display:flex; justify-content:space-between; align-items:center;">
+        <div>
+            <h2 style="margin:0; font-size:1.5rem; color:#2d3436; font-weight:800;">Timeline Roadmap</h2>
+            <p style="margin:5px 0 0; color:#a0aec0; font-size:0.9rem;">
+                <i class="fa-regular fa-calendar-check"></i> Project Duration: 
+                <?= date('M d, Y', strtotime($project['start_date'])) ?> - <?= date('M d, Y', strtotime($project['end_date'])) ?>
+            </p>
         </div>
-        <div id="ms-general" class="milestone-body" style="display: block;"> 
-            <table class="task-table">
-                <thead><tr><th>Task</th><th>Assignee</th><th>Weight</th><th>Progress</th><th>Action</th></tr></thead>
-                <tbody>
-                    <?php if (empty($generalTasks)): ?>
-                        <tr><td colspan="5" align="center" style="padding:20px; color:#999;">No general tasks found.</td></tr>
-                    <?php else: ?>
-                        <?php foreach($generalTasks as $t): ?>
-                        <tr>
-                            <td><b><?= htmlspecialchars($t['title']) ?></b><br><small style="color:#999;">Due: <?= $t['due_date'] ?></small></td>
-                            <td><?= htmlspecialchars($t['assignee_name'] ?? '-') ?></td>
-                            <td><?= $t['weight'] ?></td>
-                            <td><span class="status-pill st-<?= $t['status_id'] ?>"><?= $t['status_name'] ?> (<?= $t['progress'] ?>%)</span></td>
-                            <td>
-                                <?php 
-                                    // تحديد نوع الصلاحية (مدير أم موظف)
-                                    $isFullEdit = $canManage;
-                                    $isLimitedEdit = (!$canManage && $canEditAssigned && $t['assigned_to'] == $_SESSION['user_id']);
-                                ?>
-
-                                <?php if($isFullEdit || $isLimitedEdit): ?>
-                                    <i class="fa-solid fa-pen btn-action" title="Edit" 
-                                       onclick="editTask(this, <?= $isFullEdit ? 'true' : 'false' ?>)"
-                                       data-id="<?= $t['id'] ?>"
-                                       data-ms-id=""
-                                       data-title="<?= htmlspecialchars($t['title']) ?>"
-                                       data-desc="<?= htmlspecialchars($t['description']) ?>"
-                                       data-assigned="<?= $t['assigned_to'] ?>"
-                                       data-start="<?= $t['start_date'] ?>"
-                                       data-due="<?= $t['due_date'] ?>"
-                                       data-cost="<?= $t['cost_estimate'] ?>"
-                                       data-spent="<?= $t['cost_spent'] ?>"
-                                       data-weight="<?= $t['weight'] ?>"
-                                       data-priority="<?= $t['priority_id'] ?>"
-                                       data-status="<?= $t['status_id'] ?>">
-                                    </i>
-                                <?php endif; ?>
-
-                                <?php if($canManage): ?>
-                                    <a href="?id=<?= $id ?>&delete_task=<?= $t['id'] ?>" onclick="return confirm('Delete task?')" class="btn-action" style="color:#e74c3c;">
-                                        <i class="fa-solid fa-trash-can"></i>
-                                    </a>
-                                <?php endif; ?>
-                            </td>
-                        </tr>
-                        <?php endforeach; ?>
-                    <?php endif; ?>
-                </tbody>
-            </table>
-        </div>
-    </div>
-
-    <?php if (empty($milestones) && empty($generalTasks)): ?>
-        <div style="text-align:center; padding:60px; background:#fff; border-radius:12px; border:2px dashed #eee;">
-            <i class="fa-solid fa-map-location-dot" style="font-size:3rem; color:#e0e0e0; margin-bottom:15px;"></i>
-            <p style="color:#888;">No milestones or tasks defined yet.</p>
-        </div>
-    <?php else: ?>
-        <?php foreach ($milestones as $m): ?>
-            <?php 
-                $msSpent = $m['cost_spent']; $msBudget = $m['cost_amount'];
-                $isMsOver = ($msBudget > 0 && $msSpent > $msBudget);
-                $isComplete = ($m['progress'] == 100);
-            ?>
-        <div class="milestone-card <?= $isComplete ? 'ms-completed' : 'ms-active' ?>">
-            <div class="milestone-header" onclick="toggleBody('ms-<?= $m['id'] ?>')">
-                <div style="display:flex; align-items:center; gap:15px;">
-                    <i class="fa-solid fa-chevron-right" id="icon-ms-<?= $m['id'] ?>" style="color:#aaa; transition:0.2s;"></i>
-                    <div>
-                        <div style="font-size:1.1rem; font-weight:700; color:#333;">
-                            <?= htmlspecialchars($m['name']) ?>
-                            <?php if($isMsOver): ?><span style="color:red; font-size:0.7rem; margin-left:5px;">(Over Budget)</span><?php endif; ?>
-                        </div>
-                        <div style="font-size:0.85rem; color:#888; margin-top:4px;">
-                            <i class="fa-regular fa-calendar"></i> <?= date('M d', strtotime($m['start_date'])) ?> - <?= date('M d', strtotime($m['due_date'])) ?>
-                            <?php if($msBudget > 0): ?> <span style="margin-left:10px;">| Budget: <?= number_format($msBudget) ?></span> <?php endif; ?>
-                        </div>
-                    </div>
-                </div>
-                <div style="text-align:right;">
-                    <div class="progress-bar-bg"><div class="progress-bar-fill" style="width: <?= $m['progress'] ?>%;"></div></div>
-                    <div style="font-size:0.8rem; color:#777; margin-top:3px;"><?= $m['progress'] ?>% Done</div>
-                </div>
-            </div>
+        <div style="display:flex; gap:12px;">
+            <?php if ($canManageTasks): ?>
+                <button onclick="openTaskModal('', true)" class="btn-secondary">
+                    <i class="fa-solid fa-list-check"></i> General Task
+                </button>
+            <?php endif; ?>
             
-            <div id="ms-<?= $m['id'] ?>" class="milestone-body">
-                <table class="task-table">
-                    <thead><tr><th>Task</th><th>Assignee</th><th>Weight</th><th>Cost</th><th>Progress</th><th>Action</th></tr></thead>
-                    <tbody>
-                        <?php if (empty($m['tasks'])): ?>
-                            <tr><td colspan="6" align="center" style="padding:20px; color:#999;">No tasks in this milestone.</td></tr>
-                        <?php else: ?>
-                            <?php foreach($m['tasks'] as $t): ?>
+            <?php if ($canManageMilestones): ?>
+                <button onclick="openModal('milestoneModal')" class="btn-primary">
+                    <i class="fa-solid fa-plus"></i> New Milestone
+                </button>
+            <?php endif; ?>
+        </div>
+    </div>
+
+    <div class="timeline-container">
+        
+        <?php if (!empty($generalTasks)): ?>
+        <div class="timeline-item ms-general-item">
+            <div class="timeline-dot"></div>
+            <div class="milestone-card ms-general">
+                <div class="milestone-header" onclick="toggleBody('ms-general')">
+                    <div style="display:flex; align-items:center; gap:15px;">
+                        <div style="width:36px; height:36px; background:#e3f2fd; border-radius:8px; display:flex; align-items:center; justify-content:center; color:#3498db;">
+                            <i class="fa-solid fa-layer-group"></i>
+                        </div>
+                        <div>
+                            <div class="ms-title" style="font-size:1rem;">General Project Tasks</div>
+                            <div class="ms-meta">Uncategorized tasks</div>
+                        </div>
+                    </div>
+                    <div style="display:flex; align-items:center; gap:15px;">
+                        <span style="font-weight:700; color:#3498db; font-size:0.9rem;"><?= count($generalTasks) ?> Tasks</span>
+                        <i class="fa-solid fa-chevron-right" id="icon-ms-general" style="color:#bdc3c7; font-size:0.9rem;"></i>
+                    </div>
+                </div>
+                <div id="ms-general" class="milestone-body"> 
+                    <table class="task-table">
+                        <thead><tr><th width="40%">Task</th><th>Assignee</th><th>Weight</th><th>Progress</th><th>Actions</th></tr></thead>
+                        <tbody>
+                            <?php foreach($generalTasks as $t): ?>
                             <tr>
-                                <td><b><?= htmlspecialchars($t['title']) ?></b><br><small style="color:#999;">Due: <?= $t['due_date'] ?></small></td>
+                                <td>
+                                    <div class="task-title"><?= htmlspecialchars($t['title']) ?></div>
+                                    <div class="task-due"><i class="fa-regular fa-clock"></i> <?= $t['due_date'] ?></div>
+                                </td>
                                 <td><?= htmlspecialchars($t['assignee_name'] ?? '-') ?></td>
                                 <td><?= $t['weight'] ?></td>
-                                <td><?= ($t['cost_estimate'] > 0) ? number_format($t['cost_estimate']) : '<span style="color:#ccc">Optional</span>' ?></td>
+                                <td><span class="status-pill st-<?= $t['status_id'] ?>"><?= $t['status_name'] ?> (<?= $t['progress'] ?>%)</span></td>
                                 <td>
-                                    <div class="progress-bar-bg" style="width:50px; height:4px;"><div class="progress-bar-fill" style="width: <?= $t['progress'] ?>%;"></div></div>
-                                    <span style="font-size:0.75rem;"><?= $t['progress'] ?>%</span>
-                                </td>
-                                <td>
-                                    <span class="status-pill st-<?= $t['status_id'] ?>"><?= $t['status_name'] ?></span>
-                                    
                                     <?php 
-                                        $isFullEdit = $canManage;
-                                        $isLimitedEdit = (!$canManage && $canEditAssigned && $t['assigned_to'] == $_SESSION['user_id']);
+                                        $isFullEdit = $canManageTasks;
+                                        $isLimitedEdit = (!$canManageTasks && $canEditOwnTasks && $t['assigned_to'] == $_SESSION['user_id']);
                                     ?>
-
                                     <?php if($isFullEdit || $isLimitedEdit): ?>
-                                        <i class="fa-solid fa-pen btn-action" title="Edit" 
-                                           onclick="editTask(this, <?= $isFullEdit ? 'true' : 'false' ?>)"
-                                           data-id="<?= $t['id'] ?>"
-                                           data-ms-id="<?= $t['milestone_id'] ?>"
-                                           data-title="<?= htmlspecialchars($t['title']) ?>"
-                                           data-desc="<?= htmlspecialchars($t['description']) ?>"
-                                           data-assigned="<?= $t['assigned_to'] ?>"
-                                           data-start="<?= $t['start_date'] ?>"
-                                           data-due="<?= $t['due_date'] ?>"
-                                           data-cost="<?= $t['cost_estimate'] ?>"
-                                           data-spent="<?= $t['cost_spent'] ?>"
-                                           data-weight="<?= $t['weight'] ?>"
-                                           data-priority="<?= $t['priority_id'] ?>"
-                                           data-status="<?= $t['status_id'] ?>">
-                                        </i>
+                                        <i class="fa-solid fa-pen btn-action" title="Edit" onclick="editTask(this, <?= $isFullEdit ? 'true' : 'false' ?>)" 
+                                           data-id="<?= $t['id'] ?>" data-ms-id="" data-title="<?= htmlspecialchars($t['title']) ?>" 
+                                           data-desc="<?= htmlspecialchars($t['description']) ?>" data-assigned="<?= $t['assigned_to'] ?>" 
+                                           data-start="<?= $t['start_date'] ?>" data-due="<?= $t['due_date'] ?>" 
+                                           data-cost="<?= $t['cost_estimate'] ?>" data-spent="<?= $t['cost_spent'] ?>" 
+                                           data-weight="<?= $t['weight'] ?>" data-priority="<?= $t['priority_id'] ?>" 
+                                           data-status="<?= $t['status_id'] ?>"></i>
                                     <?php endif; ?>
-
-                                    <?php if($canManage): ?>
-                                        <a href="?id=<?= $id ?>&delete_task=<?= $t['id'] ?>" onclick="return confirm('Delete?')" class="btn-action" style="color:#e74c3c;">
-                                            <i class="fa-solid fa-trash-can"></i>
-                                        </a>
+                                    <?php if($canManageTasks): ?>
+                                        <a href="?id=<?= $id ?>&delete_task=<?= $t['id'] ?>" onclick="return confirm('Delete task?')" class="btn-action delete"><i class="fa-solid fa-trash-can"></i></a>
                                     <?php endif; ?>
                                 </td>
                             </tr>
                             <?php endforeach; ?>
-                        <?php endif; ?>
-                    </tbody>
-                </table>
-                <?php if($canManage): ?>
-                    <div style="padding:15px; text-align:right;">
-                        <button onclick="event.stopPropagation(); openTaskModal('<?= $m['id'] ?>', true)" class="btn-primary" style="padding:5px 15px; font-size:0.85rem; background:#fff4e0; color:#ff8c00;">+ Add Task</button>
-                    </div>
-                <?php endif; ?>
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
-        <?php endforeach; ?>
-    <?php endif; ?>
+        <?php endif; ?>
 
-</div>
+        <?php if (empty($milestones) && empty($generalTasks)): ?>
+            <div class="empty-state">
+                <i class="fa-solid fa-map-location-dot empty-icon"></i>
+                <h3 style="margin:0 0 10px 0; color:#4a5568;">Start Your Roadmap</h3>
+                <p class="empty-text">Create a milestone to begin tracking your project timeline.</p>
+            </div>
+        <?php else: ?>
+            <?php foreach ($milestones as $m): ?>
+                <?php 
+                    $msSpent = $m['cost_spent']; $msBudget = $m['cost_amount'];
+                    $isMsOver = ($msBudget > 0 && $msSpent > $msBudget);
+                    $isComplete = ($m['progress'] == 100);
+                ?>
+            <div class="timeline-item <?= $isComplete ? 'ms-completed' : 'ms-active' ?>">
+                <div class="timeline-dot"></div> <div class="milestone-card">
+                    <div class="milestone-header" onclick="toggleBody('ms-<?= $m['id'] ?>')">
+                        <div style="flex-grow:1;">
+                            <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
+                                <div class="ms-title">
+                                    <?= htmlspecialchars($m['name']) ?>
+                                    <?php if($isMsOver): ?><span style="background:#fee2e2; color:#c0392b; font-size:0.7rem; padding:2px 6px; border-radius:4px;">Over Budget</span><?php endif; ?>
+                                </div>
+                                <div class="ms-meta"><i class="fa-regular fa-calendar"></i> <?= date('M d', strtotime($m['start_date'])) ?> - <?= date('M d', strtotime($m['due_date'])) ?></div>
+                            </div>
+                            <div style="display:flex; align-items:center; justify-content:space-between;">
+                                <div class="ms-meta">
+                                    <?php if($msBudget > 0): ?> <span><i class="fa-solid fa-coins"></i> <?= number_format($msBudget) ?> SAR</span> <?php endif; ?>
+                                </div>
+                                <div style="display:flex; align-items:center; gap:15px;">
+                                    <div class="ms-progress-wrapper">
+                                        <div class="progress-bar-bg"><div class="progress-bar-fill" style="width: <?= $m['progress'] ?>%;"></div></div>
+                                        <div class="ms-percent"><?= $m['progress'] ?>%</div>
+                                    </div>
+                                    <i class="fa-solid fa-chevron-right" id="icon-ms-<?= $m['id'] ?>" style="color:#bdc3c7; transition:0.3s;"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div id="ms-<?= $m['id'] ?>" class="milestone-body">
+                        <table class="task-table">
+                            <thead><tr><th width="35%">Task</th><th>Assignee</th><th>Weight</th><th>Cost</th><th>Progress</th><th>Action</th></tr></thead>
+                            <tbody>
+                                <?php if (empty($m['tasks'])): ?>
+                                    <tr><td colspan="6" align="center" style="padding:30px; color:#cbd5e0; font-style:italic;">No tasks added to this milestone yet.</td></tr>
+                                <?php else: ?>
+                                    <?php foreach($m['tasks'] as $t): ?>
+                                    <tr>
+                                        <td>
+                                            <div class="task-title"><?= htmlspecialchars($t['title']) ?></div>
+                                            <div class="task-due"><i class="fa-regular fa-clock"></i> <?= $t['due_date'] ?></div>
+                                        </td>
+                                        <td><?= htmlspecialchars($t['assignee_name'] ?? '-') ?></td>
+                                        <td><?= $t['weight'] ?></td>
+                                        <td><?= ($t['cost_estimate'] > 0) ? number_format($t['cost_estimate']) : '-' ?></td>
+                                        <td>
+                                            <div style="display:flex; align-items:center; gap:8px;">
+                                                <div class="progress-bar-bg" style="width:50px; height:4px; margin:0;"><div class="progress-bar-fill" style="width: <?= $t['progress'] ?>%; background:#3498db;"></div></div>
+                                                <span style="font-size:0.75rem; color:#7f8c8d;"><?= $t['progress'] ?>%</span>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div style="display:flex; align-items:center;">
+                                                <span class="status-pill st-<?= $t['status_id'] ?>" style="margin-right:8px;"><?= $t['status_name'] ?></span>
+                                                <?php 
+                                                    $isFullEdit = $canManageTasks;
+                                                    $isLimitedEdit = (!$canManageTasks && $canEditOwnTasks && $t['assigned_to'] == $_SESSION['user_id']);
+                                                ?>
+                                                <?php if($isFullEdit || $isLimitedEdit): ?>
+                                                    <i class="fa-solid fa-pen btn-action" title="Edit" onclick="editTask(this, <?= $isFullEdit ? 'true' : 'false' ?>)" 
+                                                       data-id="<?= $t['id'] ?>" data-ms-id="<?= $t['milestone_id'] ?>" data-title="<?= htmlspecialchars($t['title']) ?>" 
+                                                       data-desc="<?= htmlspecialchars($t['description']) ?>" data-assigned="<?= $t['assigned_to'] ?>" 
+                                                       data-start="<?= $t['start_date'] ?>" data-due="<?= $t['due_date'] ?>" 
+                                                       data-cost="<?= $t['cost_estimate'] ?>" data-spent="<?= $t['cost_spent'] ?>" 
+                                                       data-weight="<?= $t['weight'] ?>" data-priority="<?= $t['priority_id'] ?>" 
+                                                       data-status="<?= $t['status_id'] ?>"></i>
+                                                <?php endif; ?>
+                                                <?php if($canManageTasks): ?>
+                                                    <a href="?id=<?= $id ?>&delete_task=<?= $t['id'] ?>" onclick="return confirm('Delete?')" class="btn-action delete"><i class="fa-solid fa-trash-can"></i></a>
+                                                <?php endif; ?>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <?php endforeach; ?>
+                                <?php endif; ?>
+                            </tbody>
+                        </table>
+                        <?php if($canManageTasks): ?>
+                            <button onclick="event.stopPropagation(); openTaskModal('<?= $m['id'] ?>', true)" class="btn-add-task-row">
+                                <i class="fa-solid fa-plus"></i> Add New Task
+                            </button>
+                        <?php endif; ?>
+                    </div>
+                </div>
+            </div>
+            <?php endforeach; ?>
+        <?php endif; ?>
+
+    </div> </div>
 </div>
 
 <div id="milestoneModal" class="modal">
@@ -364,13 +233,19 @@ $generalTasks = $generalTasks->fetchAll();
         <form method="POST">
             <div class="modal-body">
                 <input type="hidden" name="add_milestone" value="1">
-                <div class="form-group"><label class="form-label">Name <span style="color:red">*</span></label><input type="text" name="name" required class="form-input"></div>
+                <div class="form-group"><label class="form-label">Name <span style="color:#e74c3c">*</span></label><input type="text" name="name" required class="form-input" placeholder="e.g. Design Phase"></div>
                 <div class="form-grid">
-                    <div><label class="form-label">Start Date <span style="color:red">*</span></label><input type="date" name="start_date" required class="form-input"></div>
-                    <div><label class="form-label">Due Date <span style="color:red">*</span></label><input type="date" name="due_date" required class="form-input"></div>
+                    <div>
+                        <label class="form-label">Start Date <span style="color:#e74c3c">*</span></label>
+                        <input type="date" name="start_date" required class="form-input" min="<?= $project['start_date'] ?>" max="<?= $project['end_date'] ?>">
+                    </div>
+                    <div>
+                        <label class="form-label">Due Date <span style="color:#e74c3c">*</span></label>
+                        <input type="date" name="due_date" required class="form-input" min="<?= $project['start_date'] ?>" max="<?= $project['end_date'] ?>">
+                    </div>
                 </div>
-                <div class="form-group"><label class="form-label">Estimated Cost (SAR) <small style="color:#999;">(Optional)</small></label><input type="number" name="cost_amount" step="0.01" class="form-input" placeholder="0.00"></div>
-                <div class="form-group"><label class="form-label">Description</label><textarea name="description" class="form-textarea" rows="2"></textarea></div>
+                <div class="form-group"><label class="form-label">Estimated Budget (SAR)</label><input type="number" name="cost_amount" step="0.01" class="form-input" placeholder="0.00"></div>
+                <div class="form-group"><label class="form-label">Description</label><textarea name="description" class="form-textarea" placeholder="Brief details..."></textarea></div>
             </div>
             <div class="modal-footer">
                 <button type="button" onclick="closeModal('milestoneModal')" class="btn-secondary" style="margin-right:10px;">Cancel</button>
@@ -399,7 +274,7 @@ $generalTasks = $generalTasks->fetchAll();
                         </select>
                     </div>
 
-                    <div class="form-group"><label class="form-label">Task Title <span style="color:red">*</span></label><input type="text" name="title" id="t_title" required class="form-input"></div>
+                    <div class="form-group"><label class="form-label">Task Title <span style="color:#e74c3c">*</span></label><input type="text" name="title" id="t_title" required class="form-input"></div>
                     <div class="form-grid">
                         <div>
                             <label class="form-label">Assign To</label>
@@ -417,12 +292,12 @@ $generalTasks = $generalTasks->fetchAll();
                     </div>
                     <div class="form-grid">
                         <div><label class="form-label">Start Date</label><input type="date" name="start_date" id="t_start" class="form-input"></div>
-                        <div><label class="form-label">Due Date <span style="color:red">*</span></label><input type="date" name="due_date" id="t_due" required class="form-input"></div>
+                        <div><label class="form-label">Due Date <span style="color:#e74c3c">*</span></label><input type="date" name="due_date" id="t_due" required class="form-input"></div>
                     </div>
                 </div>
 
-                <div style="background:#fff8e1; padding:15px; border-radius:8px; border:1px dashed #ffcc80; margin-bottom:15px; margin-top:15px;">
-                    <h4 style="margin:0 0 10px 0; color:#d35400; font-size:0.9rem;">Status, Weight & Financials</h4>
+                <div style="background:#fffcf7; padding:20px; border-radius:12px; border:1px solid #ffe0b2; margin:20px 0;">
+                    <h4 style="margin:0 0 15px 0; color:#e67e22; font-size:0.95rem; font-weight:700;"><i class="fa-solid fa-chart-line"></i> Progress & Financials</h4>
                     <div class="form-grid">
                         <div>
                             <label class="form-label">Current Status</label>
@@ -432,18 +307,17 @@ $generalTasks = $generalTasks->fetchAll();
                         </div>
                         
                         <div id="manager-financials">
-                            <div><label class="form-label">Weight (1-10)</label><input type="number" name="weight" id="t_weight" value="1" min="1" max="10" class="form-input" style="margin-bottom:15px;"></div>
+                            <div style="margin-bottom:15px;"><label class="form-label">Weight (1-10)</label><input type="number" name="weight" id="t_weight" value="1" min="1" max="10" class="form-input"></div>
                             <div><label class="form-label">Est. Cost</label><input type="number" name="cost_estimate" id="t_cost" value="0" step="0.01" class="form-input"></div>
                         </div>
 
                         <div><label class="form-label">Spent Cost</label><input type="number" name="cost_spent" id="t_spent" value="0" step="0.01" class="form-input"></div>
-                        
-                        <div><label class="form-label">Progress % (Auto)</label><input type="text" name="progress" id="t_progress" class="form-input" readonly style="background:#eee;"></div>
+                        <div><label class="form-label">Progress % (Auto)</label><input type="text" name="progress" id="t_progress" class="form-input" readonly style="background:#f1f2f6;"></div>
                     </div>
                 </div>
                 
                 <div id="manager-desc">
-                    <div class="form-group"><label class="form-label">Description</label><textarea name="description" id="t_desc" class="form-textarea" rows="2"></textarea></div>
+                    <div class="form-group"><label class="form-label">Description</label><textarea name="description" id="t_desc" class="form-textarea" placeholder="Detailed instructions..."></textarea></div>
                 </div>
             </div>
             <div class="modal-footer">
@@ -458,10 +332,14 @@ $generalTasks = $generalTasks->fetchAll();
 <script>
     function toggleBody(id) {
         var el = document.getElementById(id);
-        var isOpen = (el.style.display === 'block');
-        el.style.display = isOpen ? 'none' : 'block';
-        var icon = document.getElementById('icon-' + id);
-        if(icon) icon.className = isOpen ? 'fa-solid fa-chevron-right' : 'fa-solid fa-chevron-down';
+        var isOpen = (el.classList.contains('open'));
+        if (isOpen) {
+            el.classList.remove('open');
+            document.getElementById('icon-' + id).style.transform = "rotate(0deg)";
+        } else {
+            el.classList.add('open');
+            document.getElementById('icon-' + id).style.transform = "rotate(90deg)";
+        }
     }
 
     function openModal(id) { document.getElementById(id).style.display = "block"; }
@@ -489,7 +367,7 @@ $generalTasks = $generalTasks->fetchAll();
 
     function editTask(btn, isFullEdit) {
         setupTaskModal(isFullEdit);
-        document.getElementById('taskModalTitle').innerText = isFullEdit ? "Edit Task" : "Update Task Progress";
+        document.getElementById('taskModalTitle').innerText = isFullEdit ? "Edit Task Details" : "Update Task Progress";
         
         document.getElementById('t_id').value = btn.getAttribute('data-id');
         
@@ -512,24 +390,19 @@ $generalTasks = $generalTasks->fetchAll();
     }
 
     function setupTaskModal(isFullEdit) {
-        // التحكم في ظهور الحقول بناءً على الصلاحية
         const managerFields = document.getElementById('manager-fields');
         const managerFinancials = document.getElementById('manager-financials');
         const managerDesc = document.getElementById('manager-desc');
         
         if (isFullEdit) {
-            // المدير: يرى ويعدل كل شيء
             managerFields.style.display = 'block';
             managerFinancials.style.display = 'block';
             managerDesc.style.display = 'block';
-            // إزالة القيد (pointer-events) في حال كان موجوداً
             managerFields.classList.remove('readonly-view');
         } else {
-            // الموظف: يرى الحقول للقراءة فقط (Read-only) ليتمكن من معرفة المهمة، لكن لا يعدلها
-            // نستخدم CSS class لتعطيل التفاعل وجعلها تبدو كـ Disabled
             managerFields.classList.add('readonly-view');
-            managerFinancials.style.display = 'none'; // نخفي الوزن والتكلفة التقديرية تماماً
-            managerDesc.classList.add('readonly-view'); // الوصف للقراءة فقط
+            managerFinancials.style.display = 'none'; 
+            managerDesc.classList.add('readonly-view');
         }
     }
 
@@ -539,6 +412,13 @@ $generalTasks = $generalTasks->fetchAll();
         else if(statusId == 2) progress = 50;
         else progress = 0;
         document.getElementById('t_progress').value = progress;
+    }
+
+    // Close Modal on Outside Click
+    window.onclick = function(event) {
+        if (event.target.classList.contains('modal')) {
+            event.target.style.display = "none";
+        }
     }
 
     <?php if(isset($_GET['msg'])): ?>
@@ -551,8 +431,8 @@ $generalTasks = $generalTasks->fetchAll();
         });
         const msg = "<?= $_GET['msg'] ?>";
         if(msg == 'milestone_added') Toast.fire({icon: 'success', title: 'Milestone Created'});
-        if(msg == 'task_saved') Toast.fire({icon: 'success', title: 'Task Saved'});
-        if(msg == 'deleted') Toast.fire({icon: 'success', title: 'Task Deleted'});
+        if(msg == 'task_saved') Toast.fire({icon: 'success', title: 'Task Saved Successfully'});
+        if(msg == 'deleted') Toast.fire({icon: 'success', title: 'Item Deleted'});
     <?php endif; ?>
 </script>
 

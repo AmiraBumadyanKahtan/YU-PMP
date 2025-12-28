@@ -3,7 +3,7 @@ require_once "../../core/config.php";
 require_once "../../core/auth.php";
 require_once "project_functions.php";
 
-if (!Auth::can('create_project')) die("Access Denied");
+if (!Auth::can('proj_create')) die("Access Denied");
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $newId = createProject($_POST);

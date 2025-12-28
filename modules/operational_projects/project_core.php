@@ -3,7 +3,7 @@
 
 require_once __DIR__ . '/../../core/Database.php';
 
-function getProjects($filters = []) {
+/*function getProjects($filters = []) {
     $db = Database::getInstance()->pdo();
     $user_id = $_SESSION['user_id'];
     $role_key = $_SESSION['role_key'];
@@ -35,9 +35,112 @@ function getProjects($filters = []) {
     return $stmt->fetchAll();
 }
 
+
 function getProjectById($id) {
     $db = Database::getInstance()->pdo();
-    $stmt = $db->prepare("SELECT p.*, d.name AS department_name, u.full_name_en AS manager_name, s.name AS status_name 
+    // التعديل: تمت إضافة s.color AS status_color لضمان ظهور اللون في الهيدر
+    $stmt = $db->prepare("SELECT p.*, 
+                                 d.name AS department_name, 
+                                 u.full_name_en AS manager_name, 
+                                 s.name AS status_name, 
+                                 s.color AS status_color 
+                          FROM operational_projects p
+                          LEFT JOIN departments d ON d.id = p.department_id
+                          LEFT JOIN users u ON u.id = p.manager_id
+                          LEFT JOIN operational_project_statuses s ON s.id = p.status_id
+                          WHERE p.id = ?");
+    $stmt->execute([$id]);
+    return $stmt->fetch();
+}
+
+function generateProjectCode() {
+    $db = Database::getInstance()->pdo();
+    $year = date('Y');
+    $prefix = "OP-$year-";
+    $stmt = $db->prepare("SELECT project_code FROM operational_projects WHERE project_code LIKE ? ORDER BY id DESC LIMIT 1");
+    $stmt->execute(["$prefix%"]);
+    $lastCode = $stmt->fetchColumn();
+    $number = $lastCode ? intval(substr($lastCode, strrpos($lastCode, '-') + 1)) + 1 : 1;
+    return $prefix . str_pad($number, 4, '0', STR_PAD_LEFT);
+}*/
+
+function getProjects($filters = []) {
+    $db = Database::getInstance()->pdo();
+    $user_id = $_SESSION['user_id'];
+    $role_key = $_SESSION['role_key'] ?? '';
+    $user_dept = $_SESSION['department_id'] ?? 0;
+
+    // هل المستخدم سوبر؟
+    $is_super = in_array($role_key, ['super_admin', 'ceo', 'strategy_office']);
+
+    // بناء الاستعلام الأساسي (Optimized Query)
+    // نستخدم DISTINCT لمنع التكرار عند استخدام JOIN مع الفريق
+    $sql = "
+        SELECT DISTINCT 
+            p.*, 
+            d.name AS department_name, 
+            u.full_name_en AS manager_name, 
+            s.name AS status_name, 
+            s.color AS status_color,
+            -- عمود وهمي يحدد هل المستخدم عضو في الفريق أم لا
+            (CASE WHEN pt.user_id IS NOT NULL THEN 1 ELSE 0 END) as is_team_member,
+            -- حساب صلاحية التعديل مباشرة هنا لتخفيف الحمل عن الصفحة
+            (CASE 
+                WHEN '$role_key' = 'super_admin' THEN 1 
+                WHEN p.manager_id = $user_id THEN 1 
+                WHEN d.manager_id = $user_id THEN 1
+                ELSE 0 
+            END) as can_edit_calculated
+        FROM operational_projects p
+        LEFT JOIN departments d ON d.id = p.department_id
+        LEFT JOIN users u ON u.id = p.manager_id
+        LEFT JOIN operational_project_statuses s ON s.id = p.status_id
+        -- هذا الـ JOIN هو بديل الـ IN (SELECT) البطيء
+        LEFT JOIN project_team pt ON p.id = pt.project_id AND pt.user_id = $user_id AND pt.is_active = 1
+        WHERE (p.is_deleted = 0 OR p.is_deleted IS NULL)
+    ";
+
+    // تطبيق صلاحيات المشاهدة (Row-Level Security)
+    if (!$is_super) {
+        if ($role_key == 'department_manager') {
+            // مدير القسم يرى مشاريع قسمه + المشاريع العامة + المشاريع المشارك فيها
+            $sql .= " AND (p.department_id = $user_dept OR p.visibility = 'public' OR pt.user_id IS NOT NULL)";
+        } else {
+            // الموظف العادي يرى المشاريع العامة + المشاريع التي يديرها + المشاريع المشارك فيها
+            $sql .= " AND (p.visibility = 'public' OR p.manager_id = $user_id OR pt.user_id IS NOT NULL)";
+        }
+    }
+
+    // الفلاتر
+    $params = [];
+    if (!empty($filters['search'])) {
+        $sql .= " AND (p.name LIKE :s OR p.project_code LIKE :s)";
+        $params[':s'] = "%" . $filters['search'] . "%";
+    }
+    if (!empty($filters['department_id'])) {
+        $sql .= " AND p.department_id = :dept";
+        $params[':dept'] = $filters['department_id'];
+    }
+    if (!empty($filters['status_id'])) {
+        $sql .= " AND p.status_id = :st";
+        $params[':st'] = $filters['status_id'];
+    }
+
+    $sql .= " ORDER BY p.id DESC";
+
+    $stmt = $db->prepare($sql);
+    $stmt->execute($params);
+    return $stmt->fetchAll();
+}
+
+
+function getProjectById($id) {
+    $db = Database::getInstance()->pdo();
+    $stmt = $db->prepare("SELECT p.*, 
+                                 d.name AS department_name, 
+                                 u.full_name_en AS manager_name, 
+                                 s.name AS status_name, 
+                                 s.color AS status_color 
                           FROM operational_projects p
                           LEFT JOIN departments d ON d.id = p.department_id
                           LEFT JOIN users u ON u.id = p.manager_id

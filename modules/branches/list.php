@@ -5,7 +5,7 @@ require_once "../../core/config.php";
 require_once "../../core/auth.php";
 require_once "branch_functions.php";
 
-if (!Auth::can('manage_departments')) die("Access Denied");
+if (!Auth::can('sys_dept_branches')) die("Access Denied");
 
 // Handle Delete Action
 if (isset($_POST['delete_id'])) {
@@ -68,7 +68,7 @@ $branches = getBranches();
         /* Button */
         .btn-primary { 
             background: linear-gradient(135deg, #ff8c00, #e67e00); color: white; border: none; 
-            padding: 10px 20px; border-radius: 8px; font-weight: 600; text-decoration: none; 
+            padding: 10px 20px; border-radius: 30px; font-weight: 600; text-decoration: none; 
             display: inline-flex; align-items: center; gap: 8px; transition: transform 0.2s, box-shadow 0.2s;
             box-shadow: 0 4px 10px rgba(255, 140, 0, 0.2);
         }
@@ -91,7 +91,7 @@ $branches = getBranches();
         /* Actions */
         .action-btn { 
             display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; 
-            border-radius: 6px; text-decoration: none; margin-right: 5px; transition: 0.2s; border: none; cursor: pointer; background: transparent;
+            border-radius: 8px; text-decoration: none; margin-right: 5px; transition: 0.2s; border: none; cursor: pointer; background: transparent;
         }
         .btn-edit { color: #1b7f3a; background: #def5e7; }
         .btn-edit:hover { background: #1b7f3a; color: #def5e7; }

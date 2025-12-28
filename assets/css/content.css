@@ -205,14 +205,6 @@
    MAIN CONTENT WRAPPER
 ========================================================= */
 
-.main-content {
-    padding-top: 80px;
-    padding-left: 290px;
-    min-height: calc(100vh - var(--header-height));
-    background: #faf8f3;
-    transition: .3s ease;
-}
-
 body.sidebar-collapsed .main-content {
     padding-left: 150px;
 }

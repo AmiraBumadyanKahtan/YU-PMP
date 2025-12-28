@@ -1,6 +1,24 @@
 <?php
 // modules/operational_projects/updates_reminder.php
 require_once "php/updates_reminder_BE.php";
+
+// التحقق من وجود المشروع وصلاحية العرض
+if (!$projectExists) {
+    include "../../layout/header.php";
+    echo "<div class='main-content'><div class='page-wrapper'><div class='alert alert-danger'>Project not found.</div></div></div>";
+    exit;
+}
+
+if (!$canView) {
+    include "../../layout/header.php";
+    include "../../layout/sidebar.php"; // إضافة السايدبار للتناسق
+    echo "<div class='main-content'><div class='page-wrapper'>";
+    // لا نضمن الهيدر الخاص بالمشروع هنا لأمان أكثر، أو نضمنه إذا أردت إظهار العنوان فقط
+    echo "<div class='alert alert-danger' style='margin-top:20px; padding: 15px;'>";
+    echo "<i class='fa-solid fa-lock'></i> <strong>Access Denied:</strong> You do not have permission to view updates for this project.";
+    echo "</div></div></div>";
+    exit;
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -23,6 +41,16 @@ require_once "php/updates_reminder_BE.php";
 <div class="page-wrapper">
 
     <?php include "project_header_inc.php"; ?>
+
+    <?php if ($isLockedStatus): ?>
+        <div class="locked-banner">
+            <i class="fa-solid fa-lock fa-lg"></i>
+            <div>
+                Project is currently <strong><?= ($project['status_id'] == 4 ? 'Rejected' : ($project['status_id'] == 8  ? 'Completed' : 'Locked')) ?></strong>.
+                Modifications are disabled.
+            </div>
+        </div>
+    <?php endif; ?>
 
     <?php if (isset($_GET['msg']) && $_GET['msg'] == 'sent'): ?>
         <script>

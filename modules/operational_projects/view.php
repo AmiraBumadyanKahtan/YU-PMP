@@ -2,7 +2,7 @@
 // modules/operational_projects/view.php
 require_once "php/view_BE.php";
 
-// --- [إضافة جديدة] جلب آخر تعليق "إرجاع" إذا كان المشروع في حالة Returned ---
+// --- جلب آخر تعليق "إرجاع" ---
 $lastReturnData = null;
 if ($isReturned) {
     $db = Database::getInstance()->pdo();
@@ -19,49 +19,22 @@ if ($isReturned) {
     $stmtReturn->execute([$id]);
     $lastReturnData = $stmtReturn->fetch();
 }
+//checkAndNotifyDelays($id);
 ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title><?= htmlspecialchars($project['name']) ?></title>
+    <title><?= htmlspecialchars($project['name']) ?> - Overview</title>
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/layout.css">
-    <link rel="stylesheet" href="css/view.css">
+    <link rel="stylesheet" href="css/View.css">
     <link rel="icon" type="image/png" href="<?php echo BASE_URL; ?>assets/images/favicon-32x32.png">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <link href="https://fonts.googleapis.com/css2?family=Varela+Round&display=swap" rel="stylesheet">
     
     <style>
-        /* ستايل صندوق التنبيه عند الإرجاع */
-        .return-alert-box {
-            background-color: #fff3cd;
-            border: 1px solid #ffeeba;
-            border-left: 5px solid #ffc107;
-            color: #856404;
-            padding: 20px;
-            border-radius: 8px;
-            margin-bottom: 25px;
-            display: flex;
-            gap: 15px;
-            align-items: flex-start;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.02);
-        }
-        .return-icon { font-size: 1.5rem; color: #ffc107; margin-top: 2px; }
-        .return-content h4 { margin: 0 0 5px 0; font-size: 1rem; color: #533f03; }
-        .return-content p { margin: 0 0 8px 0; line-height: 1.5; }
-        .return-meta { font-size: 0.85rem; color: #856404; opacity: 0.8; }
-
-        /* باقي الستايلات السابقة */
-        .project-desc { background: #fdfdfd; padding: 15px; border-left: 4px solid #3498db; margin-bottom: 20px; color: #555; line-height: 1.6; border-radius: 4px; }
-        .wf-step-detail { font-size: 0.8rem; color: #888; margin-top: 5px; line-height: 1.4; }
-        .wf-user { color: #333; font-weight: 600; display: block; }
-        .wf-date { font-size: 0.75rem; color: #aaa; display: block; }
-        .wf-status-badge { display: inline-block; padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; margin-bottom: 4px; text-transform: uppercase; }
-        .st-approved { background: #d1e7dd; color: #0f5132; }
-        .st-pending { background: #fff3cd; color: #856404; }
-        .st-rejected { background: #f8d7da; color: #721c24; }
-        .st-queue { background: #e9ecef; color: #6c757d; }
+       
     </style>
 </head>
 <body>
@@ -75,158 +48,187 @@ if ($isReturned) {
     <?php include "project_header_inc.php"; ?>
 
     <?php if (isset($error)): ?>
-        <div style="background:#fee2e2; color:#b91c1c; padding:15px; border-radius:8px; margin-bottom:20px; border:1px solid #fca5a5;">
+        <div style="background:#ffebee; color:#c0392b; padding:15px; border-radius:10px; margin-bottom:25px; font-weight:600; display:flex; align-items:center; gap:10px;">
             <i class="fa-solid fa-circle-exclamation"></i> <?= $error ?>
         </div>
     <?php endif; ?>
 
+    <div class="page-header-flex">
+        <div class="page-title">
+            <h3>Project Overview</h3>
+            <p>Comprehensive dashboard for project details, status, and approvals.</p>
+        </div>
+        
+        <?php 
+            // تحديد لون حالة المشروع
+            $sId = $project['status_id'];
+            $dotColor = '#bdc3c7'; // Default Grey
+            if($sId == 5 || $sId == 8) $dotColor = '#27ae60'; // Green
+            if($sId == 6) $dotColor = '#3498db'; // Blue (Keep only for in-progress indication if needed, or change to orange)
+            if($sId == 6) $dotColor = '#ff8c00'; // Let's make In Progress Orange to match theme
+            if($sId == 4) $dotColor = '#c0392b'; // Red
+            if($sId == 2) $dotColor = '#f39c12'; // Yellow/Orange
+        ?>
+        <div class="status-badge-header">
+            <span class="status-dot" style="background-color: <?= $dotColor ?>;"></span>
+            <?= htmlspecialchars($project['status_name'] ?? 'Unknown') ?>
+        </div>
+    </div>
+
     <?php if ($isReturned && $lastReturnData): ?>
-        <div class="return-alert-box">
-            <div class="return-icon"><i class="fa-solid fa-circle-exclamation"></i></div>
-            <div class="return-content">
-                <h4>Action Required: Project Returned for Revision</h4>
-                <p><strong>Reviewer Comment:</strong> "<?= nl2br(htmlspecialchars($lastReturnData['comments'])) ?>"</p>
-                <div class="return-meta">
-                    <i class="fa-regular fa-user"></i> Returned by: <?= htmlspecialchars($lastReturnData['full_name_en']) ?> &nbsp;|&nbsp; 
-                    <i class="fa-regular fa-clock"></i> <?= date('d M Y, h:i A', strtotime($lastReturnData['created_at'])) ?>
+        <div class="return-card">
+            <div style="font-size:2rem; color:#f1c40f;"><i class="fa-solid fa-rotate-left"></i></div>
+            <div>
+                <h3 style="margin:0 0 10px 0; color:#2d3436; font-size:1.1rem;">Returned for Modification</h3>
+                <p style="margin:0 0 15px 0; color:#636e72; line-height:1.6;">"<?= nl2br(htmlspecialchars($lastReturnData['comments'])) ?>"</p>
+                <div style="font-size:0.85rem; color:#b2bec3; font-weight:600;">
+                    Reviewer: <span style="color:#2d3436;"><?= htmlspecialchars($lastReturnData['full_name_en']) ?></span> • 
+                    <?= date('d M Y, h:i A', strtotime($lastReturnData['created_at'])) ?>
                 </div>
             </div>
         </div>
     <?php endif; ?>
+
     <?php if (!empty($tracker)): ?>
-    <div class="content-card">
-        <h3 class="card-title"><i class="fa-solid fa-route"></i> Approval Timeline</h3>
-        <div class="workflow-bar">
-            <?php foreach($tracker as $step): ?>
-                <div class="wf-step <?= $step['status_visual'] ?>">
-                    <div class="wf-circle">
-                        <?php 
-                        if($step['status_visual']=='approved') echo '<i class="fa-solid fa-check"></i>'; 
-                        elseif($step['status_visual']=='rejected') echo '<i class="fa-solid fa-xmark"></i>';
-                        elseif($step['status_visual']=='returned') echo '<i class="fa-solid fa-rotate-left"></i>';
-                        elseif($step['status_visual']=='pending') echo '<i class="fa-solid fa-clock"></i>';
-                        else echo '<i class="fa-solid fa-minus"></i>'; 
-                        ?>
-                    </div>
-                    <div class="wf-label"><?= htmlspecialchars($step['stage_label']) ?></div>
-                    <div class="wf-step-detail">
-                        <?php if ($step['reviewer_name']): ?>
-                            <span class="wf-user"><i class="fa-regular fa-user"></i> <?= htmlspecialchars($step['reviewer_name']) ?></span>
-                        <?php endif; ?>
-                        <?php if ($step['action_date']): ?>
-                            <span class="wf-date">
-                                <i class="fa-regular fa-calendar-check"></i> <?= date('M d, H:i', strtotime($step['action_date'])) ?>
-                            </span>
-                        <?php elseif ($step['status_visual'] == 'pending'): ?>
-                             <span class="wf-status-badge st-pending">Current Stage</span>
-                        <?php endif; ?>
-                    </div>
+    <div class="workflow-card">
+        <div style="text-align:center; margin-bottom:25px; color:#2d3436; font-weight:800; font-size:1.1rem; text-transform:uppercase; letter-spacing:1px;">
+            Approval Process
+        </div>
+        <div class="workflow-track">
+            <?php foreach($tracker as $step): 
+                $nodeClass = '';
+                $icon = 'fa-minus'; // Default
+                
+                if($step['status_visual'] == 'approved') { $nodeClass = 'completed'; $icon = 'fa-check'; }
+                elseif($step['status_visual'] == 'rejected') { $nodeClass = 'rejected'; $icon = 'fa-xmark'; }
+                elseif($step['status_visual'] == 'returned') { $nodeClass = 'returned'; $icon = 'fa-rotate-left'; }
+                elseif($step['status_visual'] == 'pending') { $nodeClass = 'current'; $icon = 'fa-hourglass-half'; }
+                else { $icon = 'fa-circle'; } // Queue
+            ?>
+            <div class="wf-node <?= $nodeClass ?>">
+                <div class="wf-icon-circle"><i class="fa-solid <?= $icon ?>"></i></div>
+                <div class="wf-label"><?= htmlspecialchars($step['stage_label']) ?></div>
+                <div class="wf-sub">
+                    <?php if ($step['reviewer_name']): ?>
+                        <?= htmlspecialchars(explode(' ', $step['reviewer_name'])[0]) ?> <?php else: ?>
+                        <?= ($nodeClass == 'current') ? 'Pending...' : '' ?>
+                    <?php endif; ?>
                 </div>
+            </div>
             <?php endforeach; ?>
         </div>
     </div>
     <?php endif; ?>
-    <div class="content-card">
-        <h3 class="card-title" style="margin:0 0 15px 0; border:none;">
-            <i class="fa-solid fa-circle-info"></i> Project Overview
-        </h3>
+
+    <div class="content-grid">
         
-        <?php if (!empty($project['description'])): ?>
-            <div class="project-desc">
-                <strong>Description:</strong><br>
-                <?= nl2br(htmlspecialchars($project['description'])) ?>
+        <div class="col-left">
+            <div class="art-card">
+                <div class="card-head">
+                    <div class="head-icon"><i class="fa-solid fa-align-left"></i></div>
+                    <div class="head-title">About Project</div>
+                </div>
+                <?php if (!empty($project['description'])): ?>
+                    <div class="desc-text">
+                        <?= nl2br(htmlspecialchars($project['description'])) ?>
+                    </div>
+                <?php else: ?>
+                    <div style="color:#b2bec3; font-style:italic; text-align:center; padding:20px;">No description provided.</div>
+                <?php endif; ?>
             </div>
-        <?php endif; ?>
 
-        <h4 style="margin:15px 0 10px 0; color:#2c3e50; font-size:1rem; border-bottom:1px solid #eee; padding-bottom:5px;">
-            <i class="fa-solid fa-bullseye"></i> Strategic Objectives
-        </h4>
-        <ul class="obj-list">
-            <?php foreach($objectives as $obj): ?>
-                <li class="obj-item"><?= htmlspecialchars($obj['objective_text']) ?></li>
-            <?php endforeach; ?>
-            <?php if(empty($objectives)): ?>
-                <li style="color:#999; font-style:italic; padding:10px;">No objectives added yet.</li>
-            <?php endif; ?>
-        </ul>
-        
-        <?php if (($isDraft || $isReturned) && $canEdit): ?>
-            <form method="POST" style="margin-top:20px;" class="input-group">
-                <input type="text" name="new_objective" required placeholder="Type a new objective..." class="form-input">
-                <button type="submit" class="btn-primary"><i class="fa-solid fa-plus"></i> Add</button>
-            </form>
-        <?php endif; ?>
-    </div>
-
-    
-
-    <div class="content-card" style="border: 2px solid <?= $hasDocuments ? '#eee' : '#f39c12' ?>;">
-        <h3 class="card-title">
-            <i class="fa-solid fa-paperclip"></i> Supporting Documents 
-            <?php if(!$hasDocuments): ?>
-                <span style="color:#e74c3c; font-size:0.8rem; margin-left:10px;">(Required for Approval)</span>
-            <?php endif; ?>
-        </h3>
-        
-        <div style="margin-bottom: 20px;">
-            <?php foreach($supportDocs as $doc): ?>
-                <div class="file-item">
-                    <div class="file-info">
-                        <i class="fa-solid fa-file-lines file-icon"></i>
-                        <div>
-                            <div style="font-weight:bold; color:#333;"><?= htmlspecialchars($doc['title']) ?></div>
-                            <small style="color:#888;">Uploaded on <?= date('d M Y', strtotime($doc['uploaded_at'])) ?> (<?= formatSizeUnits($doc['file_size']) ?>)</small>
+            <div class="art-card">
+                <div class="card-head">
+                    <div class="head-icon"><i class="fa-solid fa-bullseye"></i></div>
+                    <div class="head-title">Strategic Objectives</div>
+                </div>
+                
+                <div style="margin-bottom:20px;">
+                    <?php foreach($objectives as $obj): ?>
+                        <div class="obj-item">
+                            <i class="fa-solid fa-crosshairs"></i>
+                            <?= htmlspecialchars($obj['objective_text']) ?>
                         </div>
-                    </div>
-                    <div class="file-actions">
-                        <a href="<?= BASE_URL . $doc['file_path'] ?>" target="_blank" title="Download"><i class="fa-solid fa-download"></i></a>
-                        <?php if (($isDraft || $isReturned) && $canEdit): ?>
-                            <a href="?id=<?= $id ?>&delete_doc=<?= $doc['id'] ?>" onclick="return confirm('Delete document?')" class="delete-icon" title="Delete"><i class="fa-solid fa-trash"></i></a>
-                        <?php endif; ?>
-                    </div>
+                    <?php endforeach; ?>
+                    <?php if(empty($objectives)): ?>
+                        <div style="text-align:center; padding:30px; color:#b2bec3; border:2px dashed #f1f2f6; border-radius:10px;">
+                            No objectives defined yet.
+                        </div>
+                    <?php endif; ?>
                 </div>
-            <?php endforeach; ?>
-            
-            <?php if(empty($supportDocs)): ?>
-                <div style="background:#fff8e1; color:#d35400; padding:15px; border-radius:8px; text-align:center;">
-                    <i class="fa-solid fa-triangle-exclamation"></i> Warning: You must upload at least one document to submit the project.
-                </div>
-            <?php endif; ?>
+
+                <?php if ($isEditableStatus && $canEditBasic): ?>
+                    <form method="POST" style="display:flex; gap:10px;">
+                        <input type="text" name="new_objective" required placeholder="Type a new objective..." class="modern-input">
+                        <button type="submit" class="btn-grad" style="padding:12px 20px;"><i class="fa-solid fa-plus"></i></button>
+                    </form>
+                <?php endif; ?>
+            </div>
         </div>
 
-        <?php if (($isDraft || $isReturned) && $canEdit): ?>
-            <form method="POST" enctype="multipart/form-data" style="background:#f9f9f9; padding:15px; border-radius:8px; border:1px dashed #ccc;">
-                <h4 style="margin:0 0 10px 0; font-size:0.9rem; color:#555;">Attach New Document</h4>
-                <div class="input-group">
-                    <input type="text" name="doc_title" required placeholder="Document Title (e.g. Project Charter)" class="form-input">
-                    <input type="file" name="file" required class="form-input" style="padding:7px;">
-                    <button type="submit" name="upload_support_doc" class="btn-primary"><i class="fa-solid fa-upload"></i> Upload</button>
+        <div class="col-right">
+            
+            <div class="art-card">
+                <div class="card-head">
+                    <div class="head-icon"><i class="fa-solid fa-folder-open"></i></div>
+                    <div class="head-title">Project Files</div>
                 </div>
-                <input type="hidden" name="upload_support_doc" value="1">
-            </form>
-        <?php endif; ?>
-    </div>
+                
+                <div style="margin-bottom:25px;">
+                    <?php foreach($supportDocs as $doc): ?>
+                        <div class="doc-row">
+                            <div class="doc-main">
+                                <div class="doc-icon"><i class="fa-solid fa-file-pdf"></i></div>
+                                <div>
+                                    <div style="font-weight:700; color:#2d3436; font-size:0.9rem;"><?= htmlspecialchars($doc['title']) ?></div>
+                                    <div class="doc-meta"><?= formatSizeUnits($doc['file_size']) ?> • <?= date('d M', strtotime($doc['uploaded_at'])) ?></div>
+                                </div>
+                            </div>
+                            <div class="doc-actions">
+                                <a href="<?= BASE_URL . $doc['file_path'] ?>" target="_blank"><i class="fa-solid fa-cloud-arrow-down"></i></a>
+                                <?php if ($isEditableStatus && $canManageDocs): ?>
+                                    <a href="?id=<?= $id ?>&delete_doc=<?= $doc['id'] ?>" onclick="return confirm('Delete?')" class="del"><i class="fa-solid fa-trash-can"></i></a>
+                                <?php endif; ?>
+                            </div>
+                        </div>
+                    <?php endforeach; ?>
+                    <?php if(empty($supportDocs)): ?>
+                        <div style="text-align:center; color:#b2bec3; padding:10px;">No documents attached.</div>
+                    <?php endif; ?>
+                </div>
 
-    <?php if (($isDraft || $isReturned) && $canEdit): ?>
-        <div class="content-card" style="text-align:right; background:#fef9e7; border:1px solid #f1c40f; border-left: 5px solid #f1c40f;">
-            <div style="display:flex; justify-content:space-between; align-items:center;">
-                <div style="text-align:left; color:#7f8c8d;">
-                    <i class="fa-solid fa-circle-info"></i> Ensure all objectives are added and documents are attached before submitting.
-                </div>
-                <form method="POST" style="display:inline;">
+                <?php if ($isEditableStatus && $canManageDocs): ?>
+                    <form method="POST" enctype="multipart/form-data" style="border-top:1px solid #f1f2f6; padding-top:20px;">
+                        <input type="text" name="doc_title" required placeholder="File Name" class="modern-input" style="margin-bottom:10px;">
+                        <div style="position:relative;">
+                            <input type="file" name="file" id="fileInp" required style="position:absolute; width:100%; height:100%; opacity:0; cursor:pointer;">
+                            <div class="btn-upload-box"><i class="fa-solid fa-cloud-arrow-up"></i> Click to Upload File</div>
+                        </div>
+                        <input type="hidden" name="upload_support_doc" value="1">
+                        <button type="submit" class="btn-grad" style="width:100%; justify-content:center; margin-top:10px;">Upload</button>
+                    </form>
+                <?php endif; ?>
+            </div>
+
+            <?php if ($isEditableStatus && $canSubmit): ?>
+                <div class="art-card" style="text-align:center; border:2px solid #ff8c00; background:#fffbf0;">
+                    <div style="margin-bottom:15px; color:#d35400; font-weight:600;">Ready to proceed?</div>
                     <?php if ($hasDocuments): ?>
-                        <button type="submit" name="submit_approval" class="btn-primary" style="padding:12px 30px; font-size:1rem;" onclick="return confirm('Submit project for approval?')">
-                            <i class="fa-solid fa-paper-plane"></i> Submit for Approval
-                        </button>
+                        <form method="POST">
+                            <button type="submit" name="submit_approval" class="btn-grad" style="width:100%; justify-content:center; font-size:1rem; padding:15px;" onclick="return confirm('Confirm submission?')">
+                                <i class="fa-solid fa-paper-plane"></i> Submit for Approval
+                            </button>
+                        </form>
                     <?php else: ?>
-                        <button type="button" class="btn-disabled" style="padding:12px 30px; font-size:1rem;" title="Upload documents first">
-                            <i class="fa-solid fa-ban"></i> Attach Documents First
+                        <button type="button" class="btn-grad" style="width:100%; justify-content:center; background:#bdc3c7; cursor:not-allowed; box-shadow:none;">
+                            <i class="fa-solid fa-lock"></i> Attach Docs First
                         </button>
                     <?php endif; ?>
-                </form>
-            </div>
+                </div>
+            <?php endif; ?>
+
         </div>
-    <?php endif; ?>
+    </div>
 
 </div>
 </div>
@@ -242,10 +244,9 @@ if ($isReturned) {
             }
         });
         if(msg == 'objective_added') Toast.fire({icon: 'success', title: 'Objective Added'});
-        if(msg == 'doc_uploaded') Toast.fire({icon: 'success', title: 'Document Attached'});
-        if(msg == 'doc_deleted') Toast.fire({icon: 'success', title: 'Document Removed'});
-        if(msg == 'submitted') Swal.fire({icon: 'success', title: 'Submitted!', text: 'Project sent for approval successfully.'});
-        if(msg == 'updated') Toast.fire({icon: 'success', title: 'Project Updated'});
+        if(msg == 'doc_uploaded') Toast.fire({icon: 'success', title: 'File Uploaded'});
+        if(msg == 'doc_deleted') Toast.fire({icon: 'success', title: 'File Deleted'});
+        if(msg == 'submitted') Swal.fire({icon: 'success', title: 'Submitted!', text: 'Project sent for approval.'});
     </script>
 <?php endif; ?>
 
