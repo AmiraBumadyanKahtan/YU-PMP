@@ -149,69 +149,13 @@ $allStaff = $db->query($sqlStaff)->fetchAll(PDO::FETCH_GROUP);
     <meta charset="UTF-8">
     <title>Incoming Collaboration Requests</title>
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/layout.css">
+    <link rel="stylesheet" href="css/index.css">
     <link rel="icon" type="image/png" href="<?php echo BASE_URL; ?>assets/images/favicon-32x32.png">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <link href="https://fonts.googleapis.com/css2?family=Varela+Round&display=swap" rel="stylesheet">
     <style>
-        /* ... Same Styles ... */
-        body { font-family: "Varela Round", sans-serif; background-color: #fcfcfc; margin: 0; }
-        .page-wrapper { padding: 2rem; max-width: 1100px; margin: 0 auto; }
-        /* ... rest of styles ... */
-        /* --- Unified Theme Styles --- */
-        body { font-family: "Varela Round", sans-serif; background-color: #fcfcfc; margin: 0; }
-        .page-wrapper { padding: 2rem; max-width: 1100px; margin: 0 auto; }
-        
-        /* Header */
-        .page-header-flex { display: flex; align-items: center; justify-content: space-between; margin-bottom: 30px; }
-        .page-title { font-size: 1.8rem; color: #2c3e50; font-weight: 700; margin: 0; display: flex; align-items: center; gap: 10px; }
-        .page-title i { color: #ff8c00; }
-
-        /* Collaboration Card */
-        .collab-card { 
-            background: #fff; border-radius: 12px; padding: 25px; margin-bottom: 25px; 
-            box-shadow: 0 4px 15px rgba(0,0,0,0.03); border: 1px solid #f0f0f0; 
-            border-left: 6px solid #f39c12; transition: transform 0.2s; position: relative;
-        }
-        .collab-card:hover { transform: translateY(-3px); box-shadow: 0 8px 25px rgba(0,0,0,0.06); }
-        
-        .card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px; border-bottom: 1px dashed #eee; padding-bottom: 15px; }
-        .project-title { font-size: 1.3rem; color: #333; font-weight: 700; margin: 0; }
-        .request-date { font-size: 0.85rem; color: #888; background: #f9f9f9; padding: 4px 10px; border-radius: 20px; display: flex; align-items: center; gap: 6px; }
-
-        .requester-info { font-size: 0.95rem; color: #555; margin-bottom: 15px; display: flex; flex-wrap: wrap; gap: 15px; align-items: center; }
-        .requester-info strong { color: #333; }
-        .dept-tag {font-family: "Varela Round", sans-serif; background: #e3f2fd; color: #1565c0; padding: 3px 8px; border-radius: 4px; font-size: 0.8rem; font-weight: 600; display: inline-flex; align-items: center; gap: 5px; }
-
-        .requirement-box { background: #fff8e1; border: 1px solid #ffe0b2; padding: 15px; border-radius: 8px; margin-bottom: 20px; color: #5d4037; line-height: 1.5; font-size: 0.95rem; }
-        .requirement-label { display: block; font-weight: 700; font-size: 0.85rem; text-transform: uppercase; color: #d35400; margin-bottom: 5px; letter-spacing: 0.5px; }
-
-        /* Action Form */
-        .action-area { background: #fdfdfd; padding: 20px; border-radius: 10px; border: 1px solid #eee; margin-top: 15px; }
-        .form-row { display: flex; gap: 20px; flex-wrap: wrap; }
-        .form-group { flex: 1; min-width: 250px; }
-        .form-label { display: block; font-weight: 600; color: #444; font-size: 0.9rem; margin-bottom: 8px; }
-        
-        .form-select, .form-input { 
-            width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; 
-            font-size: 0.95rem; transition: all 0.2s; box-sizing: border-box; background: #fff;
-        }
-        .form-select:focus, .form-input:focus { border-color: #ff8c00; outline: none; box-shadow: 0 0 0 3px rgba(255, 140, 0, 0.1); }
-
-        .btn-row { margin-top: 20px; display: flex; justify-content: flex-end; gap: 12px; }
-        .btn-action { 
-            border: none; padding: 12px 25px; border-radius: 8px; cursor: pointer; 
-            font-weight: 700; font-size: 0.95rem; display: flex; align-items: center; gap: 8px; transition: 0.2s;
-        }
-        .btn-approve { font-family: "Varela Round", sans-serif;background: linear-gradient(135deg, #2ecc71, #27ae60); color: white; box-shadow: 0 4px 10px rgba(46, 204, 113, 0.2); }
-        .btn-approve:hover { transform: translateY(-2px); box-shadow: 0 6px 15px rgba(46, 204, 113, 0.3); }
-        
-        .btn-reject {font-family: "Varela Round", sans-serif; background: #fff; border: 1px solid #e74c3c; color: #e74c3c; }
         .btn-reject:hover { background: #feNtce; color: #c0392b; border-color: #c0392b; }
-
-        /* Empty State */
-        .empty-state { text-align: center; padding: 60px; color: #a0aec0; background: #fff; border-radius: 12px; border: 2px dashed #e2e8f0; }
-        .empty-state i { font-size: 3rem; margin-bottom: 15px; color: #cbd5e0; }
     </style>
 </head>
 <body>
@@ -247,7 +191,7 @@ $allStaff = $db->query($sqlStaff)->fetchAll(PDO::FETCH_GROUP);
                     <div class="requester-info">
                         <div>From: <strong><?= htmlspecialchars($req['requester_name']) ?></strong> (Project Manager)</div>
                         <?php if($isSuperAdmin): ?>
-                            <div class="dept-tag"><i class="fa-solid fa-building"></i> Target: <?= htmlspecialchars($req['dept_name']) ?></div>
+                            <div class="dept-tag"><i class="fa-solid fa-building"></i> Department: <?= htmlspecialchars($req['dept_name']) ?></div>
                         <?php endif; ?>
                     </div>
 

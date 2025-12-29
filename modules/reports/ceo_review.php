@@ -37,14 +37,16 @@ if (!$update) die("Update not found");
     <meta charset="UTF-8">
     <title>Review Update: <?= htmlspecialchars($update['project_name']) ?></title>
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/layout.css">
-    <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/content.css">
+    <link rel="icon" type="image/png" href="<?php echo BASE_URL; ?>assets/images/favicon-32x32.png">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Varela+Round&display=swap" rel="stylesheet">
     <style>
-        .review-container { max-width: 700px; margin: 50px auto; background: #fff; padding: 40px; border-radius: 10px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); text-align: center; }
-        .check-icon { font-size: 5rem; color: #2ecc71; margin-bottom: 20px; animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
-        .project-title { color: #34495e; margin-bottom: 5px; }
-        .update-box { background: #f8f9fa; border: 1px solid #eee; border-radius: 8px; padding: 20px; text-align: left; margin: 30px 0; }
-        .update-box h4 { margin-top: 0; color: #555; border-bottom: 1px solid #ddd; padding-bottom: 10px; }
+        .review-container {font-family: "Varela Round", sans-serif; max-width: 700px; margin: 50px auto; background: #fff; padding: 40px; border-radius: 10px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); text-align: center; }
+        .check-icon {font-family: "Varela Round", sans-serif; font-size: 5rem; color: #2ecc71; margin-bottom: 20px; animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        .project-title {font-family: "Varela Round", sans-serif; color: #34495e; margin-bottom: 5px; }
+        .update-box {font-family: "Varela Round", sans-serif; background: #f8f9fa; border: 1px solid #eee; border-radius: 8px; padding: 20px; text-align: left; margin: 30px 0; }
+        .update-box h4 { font-family: "Varela Round", sans-serif;margin-top: 0; color: #555; border-bottom: 1px solid #ddd; padding-bottom: 10px; }
         
         @keyframes popIn { from { transform: scale(0); opacity: 0; } to { transform: scale(1); opacity: 1; } }
     </style>

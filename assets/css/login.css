@@ -100,10 +100,10 @@ body {
 
 /* LEFT SECTION (UPDATED FOR CENTERING) */
 .left-section {
-    width: 45%;
+    width: 50%;
     position: relative;
-    background-color: #f58220; 
-    background-image: linear-gradient(160deg, #f58220 0%, #d35400 100%);
+    background-color: #f58220;
+    background-image: linear-gradient(261deg, #f9ad6c 0%, #ff6600 100%);
 }
 
 .left-section .overlay {
@@ -141,6 +141,8 @@ body {
     font-size: 1.1rem;
     opacity: 0.9;
     margin: 0 0 25px 0;
+    color: #1f1e1e;
+    font-weight: 600;
 }
 
 .divider {
@@ -243,7 +245,7 @@ body {
     left: 18px;
     top: 50%;
     transform: translateY(-50%);
-    color: #bdc3c7;
+    color: #ee8300;
     transition: 0.3s;
     font-size: 1rem;
 }

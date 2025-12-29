@@ -1,0 +1,46 @@
+ /* --- Unified Theme Styles --- */
+        body { font-family: "Varela Round", sans-serif; background-color: #fcfcfc; margin: 0; }
+        .page-wrapper { padding: 2rem; margin: 0 auto; }
+        
+        /* Header */
+        .page-header-flex { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
+        .page-title { font-size: 1.8rem; color: #ff8c00; font-weight: 700; margin: 0; display: flex; align-items: center; gap: 10px; }
+        .page-title i { color: #ff8c00; }
+
+        /* Form Card */
+        .form-card { 
+           background: #fff; padding: 40px; border-radius: 12px; 
+            margin: 0 auto; box-shadow: 0 4px 20px rgba(0,0,0,0.04); border: 1px solid #f0f0f0; 
+        }
+
+        /* Inputs & Labels */
+        .form-group { margin-bottom: 20px; }
+        .form-label { display: block; margin-bottom: 8px; font-weight: 600; color: #2c3e50; font-size: 0.95rem; }
+        .form-control { 
+            width: 100%; padding: 12px 15px; border: 1px solid #e0e0e0; border-radius: 8px; 
+            box-sizing: border-box; font-family: inherit; font-size: 0.95rem; transition: all 0.2s;
+        }
+        .form-control:focus { border-color: #ff8c00; outline: none; box-shadow: 0 0 0 3px rgba(255, 140, 0, 0.1); }
+        
+        /* Buttons */
+        .btn-save { 
+            font-family: "Varela Round", sans-serif;
+            width: 100%; padding: 12px; background: linear-gradient(135deg, #ff8c00, #e67e00); 
+            color: #fff; border: none; border-radius: 30px; font-size: 1rem; font-weight: 700; 
+            cursor: pointer; transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 4px 10px rgba(255, 140, 0, 0.2);
+            display: flex; justify-content: center; align-items: center; gap: 8px;
+        }
+        .btn-save:hover { transform: translateY(-2px); box-shadow: 0 6px 15px rgba(255, 140, 0, 0.3); }
+
+        .btn-secondary { 
+            background: #f1f2f6; color: #555; padding: 10px 20px; border-radius: 30px; 
+            text-decoration: none; font-weight: 600; transition: 0.2s; display: inline-flex; align-items: center; gap: 6px;
+        }
+        .btn-secondary:hover { background: #e2e6ea; color: #ff8c00; }
+
+        /* Error Alert */
+        .alert-error { 
+            background: #fff5f5; color: #c0392b; padding: 15px; border-radius: 8px; 
+            border: 1px solid #feb2b2; margin-bottom: 20px; display: flex; align-items: center; gap: 10px;
+        }

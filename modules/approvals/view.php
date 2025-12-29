@@ -23,6 +23,8 @@ $canAct = canUserActOnApproval($_SESSION['user_id'], $approval);
     <link rel="stylesheet" href="css/approvals.css">
     <link rel="icon" type="image/png" href="../../assets/images/favicon-32x32.png">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Varela+Round&display=swap" rel="stylesheet">
 </head>
 
 <body style="margin:0;">
